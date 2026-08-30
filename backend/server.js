@@ -1,0 +1,42 @@
+require("dotenv").config();
+const path = require("path");
+const express = require("express");
+const cors = require("cors");
+const authRoutes = require("./routes/auth");
+const studentAuthRoutes = require("./routes/studentAuth");
+const subjectsRoutes = require("./routes/subjects");
+const scheduleRoutes = require("./routes/schedule");
+const { router: resourcesRoutes, UPLOAD_DIR } = require("./routes/resources");
+const resourceActionsRoutes = require("./routes/resourceActions");
+const { router: bannerRoutes } = require("./routes/banner");
+const { requireAuth } = require("./middleware/auth");
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+app.use("/api/auth", authRoutes);
+app.use("/api/auth/student", studentAuthRoutes);
+app.use("/api/subjects", subjectsRoutes);
+app.use("/api/subjects", resourcesRoutes); // /api/subjects/:id/resources[...]
+app.use("/api/resources", resourceActionsRoutes); // /api/resources/:id (suppression)
+app.use("/api/schedule", scheduleRoutes);
+app.use("/api/banner", bannerRoutes);
+
+// Fichiers PDF uploadés, servis tels quels (nom aléatoire, lecture seule).
+app.use("/uploads", express.static(UPLOAD_DIR));
+
+// Route protégée minimale : confirme juste que le token est valide.
+// Sert de base pour le futur tableau de bord développeur.
+app.get("/api/dashboard/ping", requireAuth, (req, res) => {
+  res.json({ message: `Bienvenue ${req.developer.username}, page blanche prête.` });
+});
+
+app.get("/", (req, res) => {
+  res.json({ status: "My ClassRoom API - V1" });
+});
+
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`My ClassRoom backend démarré sur http://localhost:${PORT}`);
+});
