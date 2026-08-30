@@ -8,6 +8,10 @@ const SALT_ROUNDS = 12;
 
 // POST /api/auth/register
 router.post("/register", async (req, res) => {
+    const existingCount = db.prepare("SELECT COUNT(*) as count FROM developers").get();
+  if (existingCount.count >= 1) {
+    return res.status(403).json({ error: "Un compte développeur existe déjà. Les inscriptions sont fermées." });
+  }
   const { username, password, confirmPassword } = req.body || {};
 
   if (!username || !password || !confirmPassword) {
