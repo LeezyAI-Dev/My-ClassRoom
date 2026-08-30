@@ -52,7 +52,7 @@ export default function BannerCarousel() {
       {images.map((img, i) => (
         <img
           key={img.id}
-          src={img.url}
+          src={img.url.startsWith("http") ? img.url : `${import.meta.env.VITE_API_URL?.replace("/api", "") || ""}${img.url}`}
           alt=""
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
             i === index ? "opacity-100" : "opacity-0"
