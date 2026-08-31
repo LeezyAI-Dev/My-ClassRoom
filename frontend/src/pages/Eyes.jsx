@@ -21,6 +21,15 @@ function timeAgo(iso) {
   return `${days} j`;
 }
 
+// Les URLs de fichiers renvoyées par l'API sont relatives (ex: /uploads/eyes/xxx.jpg).
+// Sur le web en dev elles fonctionnent par coïncidence via le proxy, mais dans l'app
+// Android compilée il n'y a pas de serveur local : il faut préfixer avec l'adresse du backend.
+function resolveMediaUrl(url) {
+  if (!url) return url;
+  if (url.startsWith("http")) return url;
+  return `${import.meta.env.VITE_API_URL?.replace("/api", "") || ""}${url}`;
+}
+
 function EyeIcon({ size = 26, filled = false }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -300,13 +309,13 @@ export default function Eyes({ onBack }) {
             >
               {post.media_type === "image" ? (
                 <img
-                  src={post.media_url}
+                  src={resolveMediaUrl(post.media_url)}
                   alt={post.caption || "Publication EYES"}
                   className="max-h-full max-w-full object-contain"
                 />
               ) : (
                 <video
-                  src={post.media_url}
+                  src={resolveMediaUrl(post.media_url)}
                   className="max-h-full max-w-full object-contain"
                   controls
                   loop
