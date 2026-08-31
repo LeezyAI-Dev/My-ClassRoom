@@ -4,33 +4,28 @@ import { useAuth } from "../context/AuthContext";
 // ───────────────────────────────────────────────────────────
 // Configuration des matières + coefficients (directives Chris)
 // ───────────────────────────────────────────────────────────
-const GENERALE_LEFT = [
-  { key: "math", label: "MATHEMATIQUES", coef: 2 },
-  { key: "francais", label: "FRANÇAIS", coef: 2 },
+const GENERALES = [
+  { key: "math", label: "Mathématiques", coef: 2 },
+  { key: "francais", label: "Français", coef: 2 },
   { key: "cmc", label: "CMC", coef: 1 },
-  { key: "legislation", label: "LEGISLATION", coef: 1 },
+  { key: "legislation", label: "Législation", coef: 1 },
   { key: "edhc", label: "EDHC", coef: 2 },
-];
-const GENERALE_RIGHT = [
-  { key: "pchimie", label: "P.CHIMIE", coef: 2 },
+  { key: "pchimie", label: "P.Chimie", coef: 2 },
   { key: "eps", label: "EPS", coef: 1 },
-  { key: "anglais", label: "ANGLAIS", coef: 2 },
-  { key: "conduite", label: "CONDUITE", coef: 1 },
+  { key: "anglais", label: "Anglais", coef: 2 },
+  { key: "conduite", label: "Conduite", coef: 1 },
 ];
 
-const TECHNIQUE_LEFT = [
-  { key: "photogravure", label: "PHOTOGRAVURE", coef: 4 },
-  { key: "impression", label: "IMPRESSION", coef: 4 },
+const TECHNIQUES = [
+  { key: "photogravure", label: "Photogravure", coef: 4 },
+  { key: "impression", label: "Impression", coef: 4 },
   { key: "pao", label: "P.A.O", coef: 4 },
-];
-const TECHNIQUE_RIGHT = [
-  { key: "faconnage", label: "FAÇONNAGE", coef: 1 },
-  { key: "fabrication", label: "FABRICATION", coef: 3 },
-  { key: "maquette", label: "MAQUETTE", coef: 2 },
+  { key: "faconnage", label: "Façonnage", coef: 1 },
+  { key: "fabrication", label: "Fabrication", coef: 3 },
+  { key: "maquette", label: "Maquette", coef: 2 },
 ];
 
-const ALL_SUBJECTS = [...GENERALE_LEFT, ...GENERALE_RIGHT, ...TECHNIQUE_LEFT, ...TECHNIQUE_RIGHT];
-
+const ALL_SUBJECTS = [...GENERALES, ...TECHNIQUES];
 const EMPTY_NOTES = {};
 
 function storageKey(username) {
@@ -53,7 +48,7 @@ function loadStoredNotes(username) {
 // ───────────────────────────────────────────────────────────
 function BackIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
       <path
         d="M15 5L8 12L15 19"
         stroke="white"
@@ -65,134 +60,127 @@ function BackIcon() {
   );
 }
 
-function ChevronIcon({ flipped }) {
-  return (
-    <svg
-      width="26"
-      height="26"
-      viewBox="0 0 24 24"
-      fill="none"
-      style={{ transform: flipped ? "rotate(180deg)" : "none", transition: "transform 250ms ease" }}
-    >
-      <path
-        d="M9 5l6 7-6 7"
-        stroke="white"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M4 5l6 7-6 7"
-        stroke="white"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        opacity="0.55"
-      />
-    </svg>
-  );
-}
-
 // ───────────────────────────────────────────────────────────
-// Une ligne matière : pastille coef · pilule nom · cercle note
+// Une ligne matière : nom + badge coefficient à gauche,
+// champ de note à droite. Pleine largeur => le nom ne coupe jamais.
 // ───────────────────────────────────────────────────────────
-function SubjectRow({ subject, value, onChange }) {
+function SubjectRow({ subject, value, onChange, isLast }) {
   const handleChange = (e) => {
     let raw = e.target.value.replace(",", ".");
     if (raw === "") {
       onChange(subject.key, "");
       return;
     }
+    if (!/^\d{0,2}(\.\d{0,2})?$/.test(raw)) return;
     const num = Number(raw);
     if (Number.isNaN(num)) return;
-    const clamped = Math.max(0, Math.min(20, num));
-    onChange(subject.key, raw.endsWith(".") ? raw : clamped);
+    if (num > 20) return;
+    onChange(subject.key, raw);
   };
 
   const filled = value !== "" && value !== undefined && value !== null;
 
   return (
-    <div className="flex items-center gap-2.5">
-      <div
-        className="w-8 h-8 shrink-0 rounded-full bg-[#141414] flex items-center justify-center"
-        title={`Coefficient ${subject.coef}`}
-      >
-        <span className="text-white text-[11px] font-extrabold">{subject.coef}</span>
-      </div>
-
-      <div className="flex-1 min-w-0 h-11 rounded-full border-[2.5px] border-[#141414] flex items-center px-4">
-        <span className="text-[11px] sm:text-xs font-bold text-[#141414] truncate uppercase tracking-wide">
+    <div
+      className={`flex items-center justify-between gap-3 py-3 px-1 ${
+        isLast ? "" : "border-b border-slate-100"
+      }`}
+    >
+      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+        <span
+          className="w-7 h-7 shrink-0 rounded-lg bg-[#141414] text-white text-[11px] font-bold flex items-center justify-center"
+          title={`Coefficient ${subject.coef}`}
+        >
+          {subject.coef}
+        </span>
+        <span className="text-[14px] sm:text-[15px] font-semibold text-[#1c1c1c] leading-tight">
           {subject.label}
         </span>
       </div>
 
-      <div
-        className={`w-11 h-11 shrink-0 rounded-full border-[2.5px] flex items-center justify-center transition-colors ${
-          filled ? "border-sky-500 bg-sky-50" : "border-[#141414] bg-white"
+      <input
+        type="text"
+        inputMode="decimal"
+        value={value === undefined ? "" : value}
+        onChange={handleChange}
+        placeholder="—"
+        className={`w-16 h-11 shrink-0 rounded-xl border-2 text-center font-bold text-[#141414] outline-none transition-colors ${
+          filled
+            ? "border-sky-400 bg-sky-50"
+            : "border-slate-200 bg-slate-50 focus:border-slate-400"
         }`}
-      >
-        <input
-          type="text"
-          inputMode="decimal"
-          value={value === undefined ? "" : value}
-          onChange={handleChange}
-          placeholder="—"
-          className="w-full h-full text-center bg-transparent outline-none text-sm font-bold text-[#141414] placeholder:text-slate-300"
-        />
+      />
+    </div>
+  );
+}
+
+function SectionCard({ title, accent, subjects, notes, onChangeNote }) {
+  return (
+    <div className="mb-5">
+      <div className="flex items-center gap-2 mb-2 px-1">
+        <span className={`w-1.5 h-4 rounded-full ${accent}`} />
+        <h3 className="text-[13px] font-extrabold uppercase tracking-wide text-slate-500">
+          {title}
+        </h3>
+      </div>
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-4">
+        {subjects.map((s, i) => (
+          <SubjectRow
+            key={s.key}
+            subject={s}
+            value={notes[s.key]}
+            onChange={onChangeNote}
+            isLast={i === subjects.length - 1}
+          />
+        ))}
       </div>
     </div>
   );
 }
 
 // ───────────────────────────────────────────────────────────
-// Contenu d'un semestre (2 blocs de matières + moyenne)
+// Contenu d'un semestre
 // ───────────────────────────────────────────────────────────
 function SemesterPanel({ notes, onChangeNote, average }) {
   return (
-    <div className="w-full h-full overflow-y-auto px-5 pt-6 pb-6">
-      <div className="rounded-[28px] border-[2.5px] border-[#141414] px-5 py-6 mb-6">
-        <div className="grid grid-cols-2 gap-x-5 gap-y-4">
-          <div className="space-y-4">
-            {GENERALE_LEFT.map((s) => (
-              <SubjectRow key={s.key} subject={s} value={notes[s.key]} onChange={onChangeNote} />
-            ))}
-          </div>
-          <div className="space-y-4">
-            {GENERALE_RIGHT.map((s) => (
-              <SubjectRow key={s.key} subject={s} value={notes[s.key]} onChange={onChangeNote} />
-            ))}
-          </div>
-        </div>
-      </div>
+    <div className="w-full h-full overflow-y-auto px-4 sm:px-6 pt-4 pb-8">
+      <div className="max-w-xl mx-auto">
+        <SectionCard
+          title="Matières générales"
+          accent="bg-sky-400"
+          subjects={GENERALES}
+          notes={notes}
+          onChangeNote={onChangeNote}
+        />
+        <SectionCard
+          title="Matières techniques"
+          accent="bg-[#141414]"
+          subjects={TECHNIQUES}
+          notes={notes}
+          onChangeNote={onChangeNote}
+        />
 
-      <div className="rounded-[28px] border-[2.5px] border-[#141414] px-5 py-6 mb-6">
-        <div className="grid grid-cols-2 gap-x-5 gap-y-4">
-          <div className="space-y-4">
-            {TECHNIQUE_LEFT.map((s) => (
-              <SubjectRow key={s.key} subject={s} value={notes[s.key]} onChange={onChangeNote} />
-            ))}
+        <div className="bg-[#141414] rounded-2xl px-6 py-6 flex items-center justify-between">
+          <div>
+            <p
+              className="text-white/50 text-[11px] font-bold uppercase tracking-widest mb-1"
+            >
+              Moyenne générale
+            </p>
+            <h2
+              className="text-white text-lg font-extrabold uppercase"
+              style={{ fontFamily: "'Baloo 2', sans-serif" }}
+            >
+              Sur 20 points
+            </h2>
           </div>
-          <div className="space-y-4">
-            {TECHNIQUE_RIGHT.map((s) => (
-              <SubjectRow key={s.key} subject={s} value={notes[s.key]} onChange={onChangeNote} />
-            ))}
-          </div>
+          <span
+            className="text-3xl font-extrabold text-sky-400"
+            style={{ fontFamily: "'Baloo 2', sans-serif" }}
+          >
+            {average !== null ? average.toFixed(2) : "—"}
+          </span>
         </div>
-      </div>
-
-      <div className="rounded-[28px] border-[2.5px] border-[#141414] px-6 py-6 flex items-center justify-between">
-        <h2
-          className="text-2xl font-extrabold text-[#141414] uppercase"
-          style={{ fontFamily: "'Baloo 2', sans-serif" }}
-        >
-          Moyenne :
-        </h2>
-        <span
-          className="text-2xl font-extrabold text-sky-500"
-          style={{ fontFamily: "'Baloo 2', sans-serif" }}
-        >
-          {average !== null ? `${average.toFixed(2)} / 20` : ""}
-        </span>
       </div>
     </div>
   );
@@ -247,11 +235,7 @@ export default function AverageCalculator({ onBack }) {
   const average1 = computeAverage(notesByS[1] || EMPTY_NOTES);
   const average2 = computeAverage(notesByS[2] || EMPTY_NOTES);
 
-  const goTo = (target) => {
-    setSemester(target);
-  };
-
-  const toggleSemester = () => goTo(semester === 1 ? 2 : 1);
+  const goTo = (target) => setSemester(target);
 
   // ── Swipe tactile ──
   const onTouchStart = (e) => {
@@ -263,7 +247,6 @@ export default function AverageCalculator({ onBack }) {
   const onTouchMove = (e) => {
     if (touchStartX.current === null) return;
     const delta = e.touches[0].clientX - touchStartX.current;
-    // Empêche de "tirer" au-delà des bords (semestre 1 -> gauche, semestre 2 -> droite)
     if (semester === 1 && delta > 0) {
       setDragOffset(delta * 0.35);
     } else if (semester === 2 && delta < 0) {
@@ -289,9 +272,9 @@ export default function AverageCalculator({ onBack }) {
   const dragPct = trackWidth.current ? (dragOffset / trackWidth.current) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Header */}
-      <header className="bg-[#141414] px-5 pt-9 pb-6 flex items-center gap-4">
+      <header className="bg-[#141414] px-5 pt-9 pb-5 flex items-center gap-4 shrink-0">
         <button
           onClick={onBack}
           aria-label="Retour"
@@ -300,15 +283,34 @@ export default function AverageCalculator({ onBack }) {
           <BackIcon />
         </button>
         <h1
-          className="text-white leading-[0.92] text-[1.5rem]"
+          className="text-white text-[1.3rem] sm:text-[1.5rem]"
           style={{ fontFamily: "'Baloo 2', sans-serif", fontWeight: 800 }}
         >
-          <span className="block">CALCULATEUR DE</span>
-          <span className="block">
-            M<span className="text-sky-400">OY</span>ENNE
-          </span>
+          Calculateur de m<span className="text-sky-400">oy</span>enne
         </h1>
       </header>
+
+      {/* Sélecteur de semestre (segmented control, toujours visible) */}
+      <div className="bg-white px-4 sm:px-6 pt-4 pb-3 shrink-0 border-b border-slate-100">
+        <div className="max-w-xl mx-auto flex bg-slate-100 rounded-xl p-1">
+          <button
+            onClick={() => goTo(1)}
+            className={`flex-1 py-2.5 rounded-lg text-sm font-extrabold uppercase tracking-wide transition-colors ${
+              semester === 1 ? "bg-[#141414] text-white shadow" : "text-slate-500"
+            }`}
+          >
+            Semestre 1
+          </button>
+          <button
+            onClick={() => goTo(2)}
+            className={`flex-1 py-2.5 rounded-lg text-sm font-extrabold uppercase tracking-wide transition-colors ${
+              semester === 2 ? "bg-[#141414] text-white shadow" : "text-slate-500"
+            }`}
+          >
+            Semestre 2
+          </button>
+        </div>
+      </div>
 
       {/* Zone swipeable */}
       <div
@@ -341,39 +343,6 @@ export default function AverageCalculator({ onBack }) {
             />
           </div>
         </div>
-      </div>
-
-      {/* Barre du bas : indicateur + navigation semestre */}
-      <div className="bg-[#141414] px-6 py-5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => semester === 2 && toggleSemester()}
-            className={`text-white font-extrabold text-lg tracking-wide transition-opacity ${
-              semester === 1 ? "opacity-100" : "opacity-40"
-            }`}
-            style={{ fontFamily: "'Baloo 2', sans-serif" }}
-          >
-            SEMESTRE 1
-          </button>
-          <span className="text-white/30">/</span>
-          <button
-            onClick={() => semester === 1 && toggleSemester()}
-            className={`text-white font-extrabold text-lg tracking-wide transition-opacity ${
-              semester === 2 ? "opacity-100" : "opacity-40"
-            }`}
-            style={{ fontFamily: "'Baloo 2', sans-serif" }}
-          >
-            SEMESTRE 2
-          </button>
-        </div>
-
-        <button
-          onClick={toggleSemester}
-          aria-label="Changer de semestre"
-          className="w-14 h-14 rounded-full bg-[#1c1c1c] border-2 border-white/20 flex items-center justify-center active:opacity-70 transition shrink-0"
-        >
-          <ChevronIcon flipped={semester === 2} />
-        </button>
       </div>
     </div>
   );
