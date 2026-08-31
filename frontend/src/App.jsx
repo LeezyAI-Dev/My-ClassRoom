@@ -6,9 +6,10 @@ import StudentAuth from "./pages/StudentAuth";
 import Dashboard from "./pages/Dashboard";
 import Subjects from "./pages/Subjects";
 import Schedule from "./pages/Schedule";
+import AverageCalculator from "./pages/AverageCalculator";
 
 // Écrans possibles :
-// "who" -> "devAuth" | "studentAuth" -> "dashboard" -> "subjects" | "schedule"
+// "who" -> "devAuth" | "studentAuth" -> "dashboard" -> "subjects" | "schedule" | "average"
 function AppContent() {
   const [screen, setScreen] = useState("who");
   const { logout } = useAuth();
@@ -51,6 +52,10 @@ function AppContent() {
 
   if (screen === "schedule") {
     return <Schedule onBack={() => setScreen("dashboard")} />;
+  }
+
+  if (screen === "average") {
+    return <AverageCalculator onBack={() => setScreen("dashboard")} />;
   }
 
   return <Dashboard onNavigate={(key) => setScreen(key)} onLogout={handleLogout} />;

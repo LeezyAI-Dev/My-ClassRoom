@@ -178,9 +178,7 @@ export default function Dashboard({ onNavigate, onLogout }) {
           <MenuCard
             icon={<CalculatorIcon />}
             label="Calculateur de moyenne"
-            onClick={() => {
-              /* Fonctionnalité pas encore développée : ne fait rien pour l'instant. */
-            }}
+            onClick={() => onNavigate("average")}
           />
           <FutureSlot />
           <FutureSlot />
