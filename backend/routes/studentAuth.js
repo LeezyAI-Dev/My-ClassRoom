@@ -1,4 +1,4 @@
-﻿const express = require("express");
+const express = require("express");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { client } = require("../db");
@@ -6,7 +6,6 @@ const { client } = require("../db");
 const router = express.Router();
 const SALT_ROUNDS = 12;
 
-// POST /api/auth/student/register
 router.post("/register", async (req, res) => {
   try {
     const { username, password, confirmPassword } = req.body || {};
@@ -14,15 +13,12 @@ router.post("/register", async (req, res) => {
     if (!username || !password || !confirmPassword) {
       return res.status(400).json({ error: "Identifiant, mot de passe et confirmation sont requis." });
     }
-
     if (username.trim().length < 3) {
       return res.status(400).json({ error: "L'identifiant doit contenir au moins 3 caractères." });
     }
-
     if (password.length < 8) {
       return res.status(400).json({ error: "Le mot de passe doit contenir au moins 8 caractères." });
     }
-
     if (password !== confirmPassword) {
       return res.status(400).json({ error: "Les mots de passe ne correspondent pas." });
     }
@@ -51,7 +47,6 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// POST /api/auth/student/login
 router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body || {};
@@ -73,6 +68,10 @@ router.post("/login", async (req, res) => {
     const match = await bcrypt.compare(password, student.password_hash);
     if (!match) {
       return res.status(401).json({ error: "Identifiant ou mot de passe incorrect." });
+    }
+
+    if (student.suspended) {
+      return res.status(403).json({ error: "Compte suspendu. Contactez l'administration." });
     }
 
     const token = jwt.sign(

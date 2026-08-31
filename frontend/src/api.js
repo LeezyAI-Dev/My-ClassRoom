@@ -143,3 +143,28 @@ export async function deleteBannerImage(token, imageId) {
   });
   return handleResponse(res);
 }
+
+// --- Comptes élèves (compte développeur) ---
+
+export async function fetchStudents(token) {
+  const res = await fetch(`${BASE_URL}/students`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return handleResponse(res);
+}
+
+export async function suspendStudent(token, studentId) {
+  const res = await fetch(`${BASE_URL}/students/${studentId}/suspend`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return handleResponse(res);
+}
+
+export async function unsuspendStudent(token, studentId) {
+  const res = await fetch(`${BASE_URL}/students/${studentId}/unsuspend`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return handleResponse(res);
+}

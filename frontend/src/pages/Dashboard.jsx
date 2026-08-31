@@ -3,11 +3,14 @@ import { useAuth } from "../context/AuthContext";
 import BannerCarousel from "../components/BannerCarousel";
 import BannerManager from "../components/BannerManager";
 
-const MENU_ITEMS = [
+const BASE_MENU_ITEMS = [
   { key: "subjects", label: "Matières", description: "Matières générales et techniques" },
   { key: "schedule", label: "Emploi du temps", description: "Planning de la semaine, 08:00 - 17:00" },
 ];
 
+const DEVELOPER_MENU_ITEMS = [
+  { key: "students", label: "Comptes élèves", description: "Liste et suspension des comptes" },
+];
 const ROLE_LABEL = {
   developer: "développeur",
   student: "élève",
@@ -15,6 +18,7 @@ const ROLE_LABEL = {
 
 export default function Dashboard({ onNavigate, onLogout }) {
   const { user, isDeveloper, isStudent } = useAuth();
+  const menuItems = isDeveloper ? [...BASE_MENU_ITEMS, ...DEVELOPER_MENU_ITEMS] : BASE_MENU_ITEMS;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -45,7 +49,7 @@ export default function Dashboard({ onNavigate, onLogout }) {
 
         <h2 className="text-sm uppercase tracking-wide text-slate-400 mb-4">Menu</h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          {MENU_ITEMS.map((item) => (
+          {menuItems.map((item) => (
             <button
               key={item.key}
               onClick={() => onNavigate(item.key)}

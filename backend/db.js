@@ -7,6 +7,7 @@ const client = createClient({
 
 // V1 : compte développeur, matières (structure), emploi du temps (structure).
 // V1.1 : ressources par matière (PDF uploadés, liens de redirection).
+// V1.2 : suspension de compte élève (compte développeur).
 // Pas encore de cours structuré au-delà des ressources, notes, devoirs, notifications, SOS, paiement, IA, fil vidéo.
 const SCHEMA_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS developers (
@@ -19,6 +20,7 @@ const SCHEMA_STATEMENTS = [
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
+    suspended INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`,
   `CREATE TABLE IF NOT EXISTS subjects (
@@ -69,7 +71,6 @@ const GENERALES = [
   "EPS",
   "Anglais",
 ];
-
 const TECHNIQUES = [
   "Photogravure",
   "Impression",
@@ -79,16 +80,27 @@ const TECHNIQUES = [
   "Maquette",
 ];
 
+// Migration douce : ajoute la colonne "suspended" si la table students existait déjà
+// sans elle (comptes créés avant cette version). Ne touche à rien si elle existe déjà.
+async function ensureSuspendedColumn() {
+  try {
+    await client.execute("ALTER TABLE students ADD COLUMN suspended INTEGER NOT NULL DEFAULT 0");
+  } catch (err) {
+    if (!/duplicate column/i.test(err.message || "")) {
+      throw err;
+    }
+  }
+}
+
 async function initDb() {
-  // Crée les tables une par une (le client Turso exécute une seule instruction SQL à la fois).
   for (const statement of SCHEMA_STATEMENTS) {
     await client.execute(statement);
   }
 
-  // Seed des matières une seule fois (si la table est vide).
+  await ensureSuspendedColumn();
+
   const { rows } = await client.execute("SELECT COUNT(*) AS count FROM subjects");
   const subjectCount = rows[0].count;
-
   if (subjectCount === 0) {
     const insertStatements = [];
     GENERALES.forEach((name, i) => {
