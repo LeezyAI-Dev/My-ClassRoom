@@ -27,6 +27,7 @@ const TECHNIQUES = [
 
 const ALL_SUBJECTS = [...GENERALES, ...TECHNIQUES];
 const EMPTY_NOTES = {};
+const EMPTY_ALL_NOTES = { 1: {}, 2: {} };
 
 function storageKey(username) {
   return `myclassroom_average_${username || "guest"}`;
@@ -53,6 +54,27 @@ function BackIcon() {
         d="M15 5L8 12L15 19"
         stroke="white"
         strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ResetIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M4 4v5h5"
+        stroke="white"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4.6 13a8 8 0 1 0 2.3-7.5L4 9"
+        stroke="white"
+        strokeWidth="2.2"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -218,6 +240,18 @@ export default function AverageCalculator({ onBack }) {
     }));
   };
 
+  // Remet toutes les notes (semestre 1 ET semestre 2) à zéro, après confirmation.
+  const handleResetAll = () => {
+    const hasAnyNote =
+      Object.keys(notesByS[1] || {}).length > 0 || Object.keys(notesByS[2] || {}).length > 0;
+    if (!hasAnyNote) return;
+
+    if (!window.confirm("Réinitialiser toutes les notes des deux semestres ? Cette action est irréversible.")) {
+      return;
+    }
+    setNotesByS(EMPTY_ALL_NOTES);
+  };
+
   const computeAverage = (notes) => {
     let total = 0;
     let totalCoef = 0;
@@ -274,20 +308,31 @@ export default function AverageCalculator({ onBack }) {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Header */}
-      <header className="bg-[#141414] px-5 pt-9 pb-5 flex items-center gap-4 shrink-0">
+      <header className="bg-[#141414] px-5 pt-9 pb-5 flex items-center justify-between gap-4 shrink-0">
+        <div className="flex items-center gap-4 min-w-0">
+          <button
+            onClick={onBack}
+            aria-label="Retour"
+            className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center active:opacity-70 transition shrink-0"
+          >
+            <BackIcon />
+          </button>
+          <h1
+            className="text-white text-[1.15rem] sm:text-[1.5rem] truncate"
+            style={{ fontFamily: "'Baloo 2', sans-serif", fontWeight: 800 }}
+          >
+            Calculateur de m<span className="text-sky-400">oy</span>enne
+          </h1>
+        </div>
+
         <button
-          onClick={onBack}
-          aria-label="Retour"
+          onClick={handleResetAll}
+          aria-label="Réinitialiser toutes les notes"
+          title="Réinitialiser toutes les notes"
           className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center active:opacity-70 transition shrink-0"
         >
-          <BackIcon />
+          <ResetIcon />
         </button>
-        <h1
-          className="text-white text-[1.3rem] sm:text-[1.5rem]"
-          style={{ fontFamily: "'Baloo 2', sans-serif", fontWeight: 800 }}
-        >
-          Calculateur de m<span className="text-sky-400">oy</span>enne
-        </h1>
       </header>
 
       {/* Sélecteur de semestre (segmented control, toujours visible) */}
