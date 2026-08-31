@@ -7,9 +7,10 @@ import Dashboard from "./pages/Dashboard";
 import Subjects from "./pages/Subjects";
 import Schedule from "./pages/Schedule";
 import AverageCalculator from "./pages/AverageCalculator";
+import Eyes from "./pages/Eyes";
 
 // Écrans possibles :
-// "who" -> "devAuth" | "studentAuth" -> "dashboard" -> "subjects" | "schedule" | "average"
+// "who" -> "devAuth" | "studentAuth" -> "dashboard" -> "subjects" | "schedule" | "average" | "eyes"
 function AppContent() {
   const [screen, setScreen] = useState("who");
   const { logout } = useAuth();
@@ -56,6 +57,10 @@ function AppContent() {
 
   if (screen === "average") {
     return <AverageCalculator onBack={() => setScreen("dashboard")} />;
+  }
+
+  if (screen === "eyes") {
+    return <Eyes onBack={() => setScreen("dashboard")} />;
   }
 
   return <Dashboard onNavigate={(key) => setScreen(key)} onLogout={handleLogout} />;

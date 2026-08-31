@@ -168,3 +168,65 @@ export async function unsuspendStudent(token, studentId) {
   });
   return handleResponse(res);
 }
+
+// --- EYES (fil de photos/vidéos, élève + développeur) ---
+
+export async function fetchEyesFeed(token) {
+  const res = await fetch(`${BASE_URL}/eyes`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return handleResponse(res);
+}
+
+export async function uploadEyesPost(token, { file, caption }) {
+  const formData = new FormData();
+  formData.append("file", file);
+  if (caption) formData.append("caption", caption);
+
+  const res = await fetch(`${BASE_URL}/eyes`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` }, // pas de Content-Type : le navigateur le fixe (multipart + boundary)
+    body: formData,
+  });
+  return handleResponse(res);
+}
+
+export async function registerEyesView(token, postId) {
+  const res = await fetch(`${BASE_URL}/eyes/${postId}/view`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return handleResponse(res);
+}
+
+export async function toggleEyesLike(token, postId) {
+  const res = await fetch(`${BASE_URL}/eyes/${postId}/like`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return handleResponse(res);
+}
+
+export async function fetchEyesComments(token, postId) {
+  const res = await fetch(`${BASE_URL}/eyes/${postId}/comments`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return handleResponse(res);
+}
+
+export async function addEyesComment(token, postId, content) {
+  const res = await fetch(`${BASE_URL}/eyes/${postId}/comments`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ content }),
+  });
+  return handleResponse(res);
+}
+
+export async function deleteEyesPost(token, postId) {
+  const res = await fetch(`${BASE_URL}/eyes/${postId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return handleResponse(res);
+}

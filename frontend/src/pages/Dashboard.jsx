@@ -87,6 +87,22 @@ function CalculatorIcon() {
   );
 }
 
+function EyesIcon() {
+  return (
+    <svg width="76" height="76" viewBox="0 0 100 100" fill="none">
+      <rect x="6" y="6" width="88" height="88" rx="22" fill="#1c1c1c" />
+      <path
+        d="M14 50C14 50 27 27 50 27C73 27 86 50 86 50C86 50 73 73 50 73C27 73 14 50 14 50Z"
+        stroke="white"
+        strokeWidth="5.5"
+        strokeLinejoin="round"
+      />
+      <circle cx="50" cy="50" r="14" fill="#38bdf8" stroke="white" strokeWidth="4" />
+      <circle cx="55" cy="45" r="4" fill="white" />
+    </svg>
+  );
+}
+
 // Carré noir "figurant" — fonctionnalité future, non cliquable.
 function FutureSlot() {
   return <div className="w-full aspect-square rounded-[28px] bg-[#1c1c1c]" aria-hidden="true" />;
@@ -180,7 +196,7 @@ export default function Dashboard({ onNavigate, onLogout }) {
             label="Calculateur de moyenne"
             onClick={() => onNavigate("average")}
           />
-          <FutureSlot />
+          <MenuCard icon={<EyesIcon />} label="Eyes" onClick={() => onNavigate("eyes")} />
           <FutureSlot />
           <FutureSlot />
         </div>

@@ -59,6 +59,46 @@ const SCHEMA_STATEMENTS = [
     position INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`,
+  `CREATE TABLE IF NOT EXISTS eyes_posts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    author_type TEXT NOT NULL CHECK (author_type IN ('developer', 'student')),
+    author_id INTEGER NOT NULL,
+    author_username TEXT NOT NULL,
+    media_type TEXT NOT NULL CHECK (media_type IN ('image', 'video')),
+    media_url TEXT NOT NULL,
+    file_path TEXT NOT NULL,
+    caption TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_eyes_posts_created_at ON eyes_posts(created_at)`,
+  `CREATE TABLE IF NOT EXISTS eyes_likes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER NOT NULL REFERENCES eyes_posts(id) ON DELETE CASCADE,
+    user_type TEXT NOT NULL CHECK (user_type IN ('developer', 'student')),
+    user_id INTEGER NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(post_id, user_type, user_id)
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_eyes_likes_post_id ON eyes_likes(post_id)`,
+  `CREATE TABLE IF NOT EXISTS eyes_views (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER NOT NULL REFERENCES eyes_posts(id) ON DELETE CASCADE,
+    user_type TEXT NOT NULL CHECK (user_type IN ('developer', 'student')),
+    user_id INTEGER NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(post_id, user_type, user_id)
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_eyes_views_post_id ON eyes_views(post_id)`,
+  `CREATE TABLE IF NOT EXISTS eyes_comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER NOT NULL REFERENCES eyes_posts(id) ON DELETE CASCADE,
+    author_type TEXT NOT NULL CHECK (author_type IN ('developer', 'student')),
+    author_id INTEGER NOT NULL,
+    author_username TEXT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_eyes_comments_post_id ON eyes_comments(post_id)`,
 ];
 
 const GENERALES = [

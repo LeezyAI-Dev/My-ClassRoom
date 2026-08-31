@@ -49,4 +49,23 @@ function requireStudentAuth(req, res, next) {
   next();
 }
 
-module.exports = { requireAuth, requireStudentAuth };
+// Réservé aux comptes connectés, développeur OU élève (ex: le fil "EYES", où
+// les deux rôles peuvent publier et consulter). req.actor = { type, id, username }.
+function requireAnyAuth(req, res, next) {
+  const payload = decodeToken(req);
+
+  if (payload === null) {
+    return res.status(401).json({ error: "Token manquant." });
+  }
+  if (payload === undefined) {
+    return res.status(401).json({ error: "Token invalide ou expiré." });
+  }
+  if (payload.role !== "developer" && payload.role !== "student") {
+    return res.status(403).json({ error: "Accès réservé aux comptes connectés." });
+  }
+
+  req.actor = { type: payload.role, id: payload.id, username: payload.username };
+  next();
+}
+
+module.exports = { requireAuth, requireStudentAuth, requireAnyAuth };
