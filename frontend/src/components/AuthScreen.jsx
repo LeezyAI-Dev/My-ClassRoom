@@ -44,6 +44,38 @@ function ThumbsUpIcon() {
   );
 }
 
+// Œil ouvert : mot de passe actuellement affiché en clair.
+function EyeIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"
+        stroke="#141414"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="3" stroke="#141414" strokeWidth="1.8" />
+    </svg>
+  );
+}
+
+// Œil barré : mot de passe masqué.
+function EyeOffIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M9.9 9.9a3 3 0 0 0 4.2 4.2M6.6 6.6C3.6 8.4 1.5 12 1.5 12S5 19 12 19c1.1 0 2.1-.15 3-.42M10.6 5.1A10.6 10.6 0 0 1 12 5c7 0 10.5 7 10.5 7a15 15 0 0 1-3.4 4.3"
+        stroke="#141414"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <path d="M3 3l18 18" stroke="#141414" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 /**
  * Écran visuel de connexion / inscription, réutilisé pour le compte
  * développeur ET le compte élève. Toute la logique (appels API, gestion
@@ -60,6 +92,8 @@ export default function AuthScreen({
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
@@ -160,7 +194,7 @@ export default function AuthScreen({
         <label className="flex items-center gap-3 border border-[#141414]/70 rounded-full px-5 py-4">
           <LockIcon />
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -168,6 +202,14 @@ export default function AuthScreen({
             placeholder="Mot de passe"
             className="flex-1 bg-transparent outline-none text-[#141414] placeholder:text-slate-400"
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+            className="shrink-0 p-1 -mr-1 active:opacity-60 transition"
+          >
+            {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+          </button>
         </label>
 
         {/* Confirmation (inscription uniquement) */}
@@ -175,7 +217,7 @@ export default function AuthScreen({
           <label className="flex items-center gap-3 border border-[#141414]/70 rounded-full px-5 py-4">
             <ThumbsUpIcon />
             <input
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
@@ -183,6 +225,16 @@ export default function AuthScreen({
               placeholder="Confirmer le mot de passe"
               className="flex-1 bg-transparent outline-none text-[#141414] placeholder:text-slate-400"
             />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword((v) => !v)}
+              aria-label={
+                showConfirmPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"
+              }
+              className="shrink-0 p-1 -mr-1 active:opacity-60 transition"
+            >
+              {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
+            </button>
           </label>
         )}
 
