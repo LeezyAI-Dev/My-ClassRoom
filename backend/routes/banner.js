@@ -3,7 +3,7 @@ const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
 const multer = require("multer");
-const db = require("../db");
+const { client } = require("../db");
 const { requireAuth } = require("../middleware/auth");
 
 const router = express.Router();
@@ -42,66 +42,95 @@ const upload = multer({
 
 // GET /api/banner
 // Consultation libre : tout le monde (élève, développeur, visiteur) voit les images de la bannière.
-router.get("/", (req, res) => {
-  const images = db
-    .prepare(
+router.get("/", async (req, res) => {
+  try {
+    const result = await client.execute(
       `SELECT id, url, original_filename, position, created_at
        FROM banner_images
        ORDER BY position ASC, created_at ASC`
-    )
-    .all();
+    );
 
-  res.json({ images });
+    res.json({ images: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur lors de la récupération de la bannière." });
+  }
 });
 
 // POST /api/banner
 // Ajout d'une image à la bannière défilante. Réservé au compte développeur.
 router.post("/", requireAuth, (req, res) => {
-  upload.single("file")(req, res, (uploadErr) => {
+  upload.single("file")(req, res, async (uploadErr) => {
     if (uploadErr) {
       if (uploadErr.code === "LIMIT_FILE_SIZE") {
         return res.status(400).json({ error: "L'image dépasse la taille maximale autorisée (8 Mo)." });
       }
       return res.status(400).json({ error: uploadErr.message || "Erreur lors de l'upload de l'image." });
     }
-
     if (!req.file) {
       return res.status(400).json({ error: "Aucune image fournie (champ \"file\" attendu)." });
     }
 
-    const publicUrl = `/uploads/banners/${req.file.filename}`;
-    const maxPositionRow = db.prepare("SELECT MAX(position) AS maxPos FROM banner_images").get();
-    const nextPosition = (maxPositionRow.maxPos ?? -1) + 1;
+    try {
+      const publicUrl = `/uploads/banners/${req.file.filename}`;
 
-    const info = db
-      .prepare(
-        `INSERT INTO banner_images (url, file_path, original_filename, position)
-         VALUES (?, ?, ?, ?)`
-      )
-      .run(publicUrl, req.file.filename, req.file.originalname, nextPosition);
+      const maxPositionResult = await client.execute(
+        "SELECT MAX(position) AS maxPos FROM banner_images"
+      );
+      const maxPos = maxPositionResult.rows[0].maxPos;
+      const nextPosition = (maxPos ?? -1) + 1;
 
-    const created = db.prepare("SELECT * FROM banner_images WHERE id = ?").get(info.lastInsertRowid);
-    res.status(201).json({ message: "Image ajoutée à la bannière.", image: created });
+      const insertResult = await client.execute({
+        sql: `INSERT INTO banner_images (url, file_path, original_filename, position)
+              VALUES (?, ?, ?, ?)`,
+        args: [publicUrl, req.file.filename, req.file.originalname, nextPosition],
+      });
+
+      const newId = Number(insertResult.lastInsertRowid);
+      const created = await client.execute({
+        sql: "SELECT * FROM banner_images WHERE id = ?",
+        args: [newId],
+      });
+
+      res.status(201).json({ message: "Image ajoutée à la bannière.", image: created.rows[0] });
+    } catch (err) {
+      if (req.file) fs.unlink(req.file.path, () => {});
+      console.error(err);
+      res.status(500).json({ error: "Erreur serveur lors de l'ajout de l'image." });
+    }
   });
 });
 
 // DELETE /api/banner/:id
 // Suppression d'une image de la bannière (entrée en base + fichier sur disque). Réservé au développeur.
-router.delete("/:id", requireAuth, (req, res) => {
-  const { id } = req.params;
-  const image = db.prepare("SELECT * FROM banner_images WHERE id = ?").get(id);
+router.delete("/:id", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
 
-  if (!image) {
-    return res.status(404).json({ error: "Image introuvable." });
+    const result = await client.execute({
+      sql: "SELECT * FROM banner_images WHERE id = ?",
+      args: [id],
+    });
+    const image = result.rows[0];
+
+    if (!image) {
+      return res.status(404).json({ error: "Image introuvable." });
+    }
+
+    await client.execute({
+      sql: "DELETE FROM banner_images WHERE id = ?",
+      args: [id],
+    });
+
+    if (image.file_path) {
+      fs.unlink(path.join(BANNER_DIR, image.file_path), () => {});
+    }
+
+    res.json({ message: "Image supprimée." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur lors de la suppression de l'image." });
   }
-
-  db.prepare("DELETE FROM banner_images WHERE id = ?").run(id);
-
-  if (image.file_path) {
-    fs.unlink(path.join(BANNER_DIR, image.file_path), () => {});
-  }
-
-  res.json({ message: "Image supprimée." });
 });
 
 module.exports = { router, BANNER_DIR };

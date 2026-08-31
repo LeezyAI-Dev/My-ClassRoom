@@ -1,9 +1,9 @@
-const express = require("express");
+﻿const express = require("express");
 const path = require("path");
 const fs = require("fs");
 const crypto = require("crypto");
 const multer = require("multer");
-const db = require("../db");
+const { client } = require("../db");
 const { requireAuth } = require("../middleware/auth");
 
 const router = express.Router();
@@ -18,7 +18,6 @@ const MAX_PDF_SIZE = 20 * 1024 * 1024; // 20 Mo
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, UPLOAD_DIR),
   filename: (req, file, cb) => {
-    // Nom de fichier aléatoire : on ne fait jamais confiance au nom fourni par le client.
     const unique = crypto.randomBytes(16).toString("hex");
     cb(null, `${unique}.pdf`);
   },
@@ -46,35 +45,41 @@ function isHttpUrl(value) {
   }
 }
 
-function findSubject(subjectId) {
-  return db.prepare("SELECT id FROM subjects WHERE id = ?").get(subjectId);
+async function findSubject(subjectId) {
+  const result = await client.execute({
+    sql: "SELECT id FROM subjects WHERE id = ?",
+    args: [subjectId],
+  });
+  return result.rows[0];
 }
 
 // GET /api/subjects/:subjectId/resources
-// Consultation libre : tout le monde peut voir les ressources d'une matière.
-router.get("/:subjectId/resources", (req, res) => {
-  const { subjectId } = req.params;
+router.get("/:subjectId/resources", async (req, res) => {
+  try {
+    const { subjectId } = req.params;
 
-  if (!findSubject(subjectId)) {
-    return res.status(404).json({ error: "Matière introuvable." });
+    if (!(await findSubject(subjectId))) {
+      return res.status(404).json({ error: "Matière introuvable." });
+    }
+
+    const result = await client.execute({
+      sql: `SELECT id, subject_id, type, title, url, original_filename, created_at
+            FROM subject_resources
+            WHERE subject_id = ?
+            ORDER BY created_at DESC`,
+      args: [subjectId],
+    });
+
+    res.json({ resources: result.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur lors de la récupération des ressources." });
   }
-
-  const resources = db
-    .prepare(
-      `SELECT id, subject_id, type, title, url, original_filename, created_at
-       FROM subject_resources
-       WHERE subject_id = ?
-       ORDER BY created_at DESC`
-    )
-    .all(subjectId);
-
-  res.json({ resources });
 });
 
 // POST /api/subjects/:subjectId/resources/pdf
-// Upload d'un PDF pour une matière. Réservé au compte développeur.
 router.post("/:subjectId/resources/pdf", requireAuth, (req, res) => {
-  upload.single("file")(req, res, (uploadErr) => {
+  upload.single("file")(req, res, async (uploadErr) => {
     if (uploadErr) {
       if (uploadErr.code === "LIMIT_FILE_SIZE") {
         return res.status(400).json({ error: "Le fichier dépasse la taille maximale autorisée (20 Mo)." });
@@ -87,62 +92,80 @@ router.post("/:subjectId/resources/pdf", requireAuth, (req, res) => {
       if (req.file) fs.unlink(req.file.path, () => {});
     };
 
-    if (!findSubject(subjectId)) {
+    try {
+      if (!(await findSubject(subjectId))) {
+        cleanup();
+        return res.status(404).json({ error: "Matière introuvable." });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ error: "Aucun fichier PDF fourni (champ \"file\" attendu)." });
+      }
+
+      const title = (req.body.title || req.file.originalname.replace(/\.pdf$/i, "")).trim();
+      if (!title) {
+        cleanup();
+        return res.status(400).json({ error: "Le titre est requis." });
+      }
+
+      const publicUrl = `/uploads/${req.file.filename}`;
+
+      const insertResult = await client.execute({
+        sql: `INSERT INTO subject_resources (subject_id, type, title, url, file_path, original_filename)
+              VALUES (?, 'pdf', ?, ?, ?, ?)`,
+        args: [subjectId, title, publicUrl, req.file.filename, req.file.originalname],
+      });
+
+      const newId = Number(insertResult.lastInsertRowid);
+      const created = await client.execute({
+        sql: "SELECT * FROM subject_resources WHERE id = ?",
+        args: [newId],
+      });
+
+      res.status(201).json({ message: "PDF ajouté.", resource: created.rows[0] });
+    } catch (err) {
       cleanup();
-      return res.status(404).json({ error: "Matière introuvable." });
+      console.error(err);
+      res.status(500).json({ error: "Erreur serveur lors de l'ajout du PDF." });
     }
-
-    if (!req.file) {
-      return res.status(400).json({ error: "Aucun fichier PDF fourni (champ \"file\" attendu)." });
-    }
-
-    const title = (req.body.title || req.file.originalname.replace(/\.pdf$/i, "")).trim();
-    if (!title) {
-      cleanup();
-      return res.status(400).json({ error: "Le titre est requis." });
-    }
-
-    const publicUrl = `/uploads/${req.file.filename}`;
-
-    const info = db
-      .prepare(
-        `INSERT INTO subject_resources (subject_id, type, title, url, file_path, original_filename)
-         VALUES (?, 'pdf', ?, ?, ?, ?)`
-      )
-      .run(subjectId, title, publicUrl, req.file.filename, req.file.originalname);
-
-    const created = db.prepare("SELECT * FROM subject_resources WHERE id = ?").get(info.lastInsertRowid);
-    res.status(201).json({ message: "PDF ajouté.", resource: created });
   });
 });
 
 // POST /api/subjects/:subjectId/resources/link
-// Ajout d'un lien de redirection pour une matière. Réservé au compte développeur.
-router.post("/:subjectId/resources/link", requireAuth, (req, res) => {
-  const { subjectId } = req.params;
+router.post("/:subjectId/resources/link", requireAuth, async (req, res) => {
+  try {
+    const { subjectId } = req.params;
 
-  if (!findSubject(subjectId)) {
-    return res.status(404).json({ error: "Matière introuvable." });
+    if (!(await findSubject(subjectId))) {
+      return res.status(404).json({ error: "Matière introuvable." });
+    }
+
+    const { title, url } = req.body || {};
+
+    if (!title || !title.trim()) {
+      return res.status(400).json({ error: "Le titre est requis." });
+    }
+    if (!url || !isHttpUrl(url.trim())) {
+      return res.status(400).json({ error: "Le lien doit être une URL valide (http:// ou https://)." });
+    }
+
+    const insertResult = await client.execute({
+      sql: `INSERT INTO subject_resources (subject_id, type, title, url)
+            VALUES (?, 'link', ?, ?)`,
+      args: [subjectId, title.trim(), url.trim()],
+    });
+
+    const newId = Number(insertResult.lastInsertRowid);
+    const created = await client.execute({
+      sql: "SELECT * FROM subject_resources WHERE id = ?",
+      args: [newId],
+    });
+
+    res.status(201).json({ message: "Lien ajouté.", resource: created.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Erreur serveur lors de l'ajout du lien." });
   }
-
-  const { title, url } = req.body || {};
-
-  if (!title || !title.trim()) {
-    return res.status(400).json({ error: "Le titre est requis." });
-  }
-  if (!url || !isHttpUrl(url.trim())) {
-    return res.status(400).json({ error: "Le lien doit être une URL valide (http:// ou https://)." });
-  }
-
-  const info = db
-    .prepare(
-      `INSERT INTO subject_resources (subject_id, type, title, url)
-       VALUES (?, 'link', ?, ?)`
-    )
-    .run(subjectId, title.trim(), url.trim());
-
-  const created = db.prepare("SELECT * FROM subject_resources WHERE id = ?").get(info.lastInsertRowid);
-  res.status(201).json({ message: "Lien ajouté.", resource: created });
 });
 
 module.exports = { router, UPLOAD_DIR };

@@ -2,6 +2,7 @@ require("dotenv").config();
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
+const { initDb } = require("./db");
 const authRoutes = require("./routes/auth");
 const studentAuthRoutes = require("./routes/studentAuth");
 const subjectsRoutes = require("./routes/subjects");
@@ -37,6 +38,15 @@ app.get("/", (req, res) => {
 });
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`My ClassRoom backend démarré sur http://localhost:${PORT}`);
-});
+
+// On attend que les tables Turso soient prêtes avant d'accepter des requêtes.
+initDb()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`My ClassRoom backend démarré sur http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Erreur lors de l'initialisation de la base de données Turso :", err);
+    process.exit(1);
+  });
