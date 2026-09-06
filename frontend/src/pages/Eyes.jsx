@@ -71,11 +71,11 @@ function CommentIcon({ size = 28 }) {
   );
 }
 
-function PlusIcon({ size = 22 }) {
+function PlusIcon({ size = 22, color = "white" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <line x1="12" y1="4" x2="12" y2="20" stroke="#1c1c1c" strokeWidth="2.2" strokeLinecap="round" />
-      <line x1="4" y1="12" x2="20" y2="12" stroke="#1c1c1c" strokeWidth="2.2" strokeLinecap="round" />
+      <line x1="12" y1="4" x2="12" y2="20" stroke={color} strokeWidth="2.2" strokeLinecap="round" />
+      <line x1="4" y1="12" x2="20" y2="12" stroke={color} strokeWidth="2.2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -259,9 +259,9 @@ export default function Eyes({ onBack }) {
   };
 
   return (
-    <div className="min-h-screen bg-black flex flex-col">
+    <div className="min-h-screen bg-[#060b1c] flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 sticky top-0 z-20 bg-black/90 backdrop-blur">
+      <div className="flex items-center justify-between px-4 py-3 sticky top-0 z-20 bg-[#060b1c]/90 backdrop-blur border-b border-white/10">
         <button onClick={onBack} className="p-2 -ml-2">
           <BackArrow />
         </button>
@@ -276,7 +276,7 @@ export default function Eyes({ onBack }) {
         </div>
         <button
           onClick={() => setShowUpload(true)}
-          className="bg-white rounded-full p-2"
+          className="bg-gradient-to-br from-sky-500 to-blue-600 rounded-full p-2 shadow-[0_0_16px_-2px_rgba(56,189,248,0.6)]"
           aria-label="Publier"
         >
           <PlusIcon />
@@ -360,7 +360,7 @@ export default function Eyes({ onBack }) {
       {/* Modale d'upload */}
       {showUpload && (
         <div className="fixed inset-0 bg-black/80 z-30 flex items-end sm:items-center justify-center">
-          <div className="bg-[#1c1c1c] w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6">
+          <div className="bg-[#0b1230] border border-white/10 w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white text-lg" style={{ fontFamily: "'Baloo 2', sans-serif", fontWeight: 700 }}>
                 Publier dans EYES
@@ -371,8 +371,8 @@ export default function Eyes({ onBack }) {
             </div>
 
             {!previewUrl ? (
-              <label className="flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-2xl py-10 cursor-pointer text-white/60">
-                <PlusIcon size={28} />
+              <label className="flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-2xl py-10 cursor-pointer text-white/60 hover:border-sky-400 transition">
+                <PlusIcon size={28} color="currentColor" />
                 <span className="mt-2 text-sm">Choisir une photo ou une vidéo</span>
                 <input
                   type="file"
@@ -414,7 +414,7 @@ export default function Eyes({ onBack }) {
             <button
               onClick={handlePublish}
               disabled={uploading}
-              className="w-full mt-4 bg-white text-[#1c1c1c] font-semibold py-3 rounded-2xl disabled:opacity-50"
+              className="w-full mt-4 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold py-3 rounded-2xl shadow-[0_0_18px_-4px_rgba(56,189,248,0.6)] disabled:opacity-50"
             >
               {uploading ? "Publication…" : "Publier"}
             </button>
@@ -426,7 +426,7 @@ export default function Eyes({ onBack }) {
       {commentsPostId && (
         <div className="fixed inset-0 bg-black/60 z-30 flex items-end" onClick={closeComments}>
           <div
-            className="bg-[#1c1c1c] w-full max-h-[70vh] rounded-t-3xl flex flex-col"
+            className="bg-[#0b1230] border border-white/10 w-full max-h-[70vh] rounded-t-3xl flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">

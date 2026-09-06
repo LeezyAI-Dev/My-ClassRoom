@@ -105,17 +105,17 @@ function SubjectRow({ subject, value, onChange, isLast }) {
   return (
     <div
       className={`flex items-center justify-between gap-3 py-3 px-1 ${
-        isLast ? "" : "border-b border-slate-100"
+        isLast ? "" : "border-b border-white/10"
       }`}
     >
       <div className="flex items-center gap-2.5 min-w-0 flex-1">
         <span
-          className="w-7 h-7 shrink-0 rounded-lg bg-[#141414] text-white text-[11px] font-bold flex items-center justify-center"
+          className="w-7 h-7 shrink-0 rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 text-white text-[11px] font-bold flex items-center justify-center"
           title={`Coefficient ${subject.coef}`}
         >
           {subject.coef}
         </span>
-        <span className="text-[14px] sm:text-[15px] font-semibold text-[#1c1c1c] leading-tight">
+        <span className="text-[14px] sm:text-[15px] font-semibold text-white leading-tight">
           {subject.label}
         </span>
       </div>
@@ -126,10 +126,10 @@ function SubjectRow({ subject, value, onChange, isLast }) {
         value={value === undefined ? "" : value}
         onChange={handleChange}
         placeholder="—"
-        className={`w-16 h-11 shrink-0 rounded-xl border-2 text-center font-bold text-[#141414] outline-none transition-colors ${
+        className={`w-16 h-11 shrink-0 rounded-xl border-2 text-center font-bold text-white outline-none transition-colors ${
           filled
-            ? "border-sky-400 bg-sky-50"
-            : "border-slate-200 bg-slate-50 focus:border-slate-400"
+            ? "border-sky-400 bg-sky-500/15"
+            : "border-white/15 bg-white/5 focus:border-white/30"
         }`}
       />
     </div>
@@ -141,11 +141,11 @@ function SectionCard({ title, accent, subjects, notes, onChangeNote }) {
     <div className="mb-5">
       <div className="flex items-center gap-2 mb-2 px-1">
         <span className={`w-1.5 h-4 rounded-full ${accent}`} />
-        <h3 className="text-[13px] font-extrabold uppercase tracking-wide text-slate-500">
+        <h3 className="text-[13px] font-extrabold uppercase tracking-wide text-white/50">
           {title}
         </h3>
       </div>
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-4">
+      <div className="bg-white/5 rounded-2xl border border-white/10 px-4">
         {subjects.map((s, i) => (
           <SubjectRow
             key={s.key}
@@ -176,16 +176,16 @@ function SemesterPanel({ notes, onChangeNote, average }) {
         />
         <SectionCard
           title="Matières techniques"
-          accent="bg-[#141414]"
+          accent="bg-amber-400"
           subjects={TECHNIQUES}
           notes={notes}
           onChangeNote={onChangeNote}
         />
 
-        <div className="bg-[#141414] rounded-2xl px-6 py-6 flex items-center justify-between">
+        <div className="bg-gradient-to-br from-[#1660e0] to-[#05122c] border border-white/10 rounded-2xl px-6 py-6 flex items-center justify-between shadow-[0_0_28px_-6px_rgba(37,120,255,0.5)]">
           <div>
             <p
-              className="text-white/50 text-[11px] font-bold uppercase tracking-widest mb-1"
+              className="text-white/60 text-[11px] font-bold uppercase tracking-widest mb-1"
             >
               Moyenne générale
             </p>
@@ -197,7 +197,7 @@ function SemesterPanel({ notes, onChangeNote, average }) {
             </h2>
           </div>
           <span
-            className="text-3xl font-extrabold text-sky-400"
+            className="text-3xl font-extrabold text-sky-300"
             style={{ fontFamily: "'Baloo 2', sans-serif" }}
           >
             {average !== null ? average.toFixed(2) : "—"}
@@ -306,14 +306,14 @@ export default function AverageCalculator({ onBack }) {
   const dragPct = trackWidth.current ? (dragOffset / trackWidth.current) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-[#060b1c] flex flex-col">
       {/* Header */}
-      <header className="bg-[#141414] px-5 pt-9 pb-5 flex items-center justify-between gap-4 shrink-0">
+      <header className="px-5 pt-9 pb-5 flex items-center justify-between gap-4 shrink-0">
         <div className="flex items-center gap-4 min-w-0">
           <button
             onClick={onBack}
             aria-label="Retour"
-            className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center active:opacity-70 transition shrink-0"
+            className="w-10 h-10 rounded-full border-2 border-white/30 flex items-center justify-center active:opacity-70 transition shrink-0"
           >
             <BackIcon />
           </button>
@@ -329,19 +329,21 @@ export default function AverageCalculator({ onBack }) {
           onClick={handleResetAll}
           aria-label="Réinitialiser toutes les notes"
           title="Réinitialiser toutes les notes"
-          className="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center active:opacity-70 transition shrink-0"
+          className="w-10 h-10 rounded-full border-2 border-white/30 flex items-center justify-center active:opacity-70 transition shrink-0"
         >
           <ResetIcon />
         </button>
       </header>
 
       {/* Sélecteur de semestre (segmented control, toujours visible) */}
-      <div className="bg-white px-4 sm:px-6 pt-4 pb-3 shrink-0 border-b border-slate-100">
-        <div className="max-w-xl mx-auto flex bg-slate-100 rounded-xl p-1">
+      <div className="px-4 sm:px-6 pb-3 shrink-0">
+        <div className="max-w-xl mx-auto flex bg-white/5 border border-white/10 rounded-xl p-1">
           <button
             onClick={() => goTo(1)}
             className={`flex-1 py-2.5 rounded-lg text-sm font-extrabold uppercase tracking-wide transition-colors ${
-              semester === 1 ? "bg-[#141414] text-white shadow" : "text-slate-500"
+              semester === 1
+                ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-[0_0_16px_-2px_rgba(56,189,248,0.6)]"
+                : "text-white/50"
             }`}
           >
             Semestre 1
@@ -349,7 +351,9 @@ export default function AverageCalculator({ onBack }) {
           <button
             onClick={() => goTo(2)}
             className={`flex-1 py-2.5 rounded-lg text-sm font-extrabold uppercase tracking-wide transition-colors ${
-              semester === 2 ? "bg-[#141414] text-white shadow" : "text-slate-500"
+              semester === 2
+                ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-[0_0_16px_-2px_rgba(56,189,248,0.6)]"
+                : "text-white/50"
             }`}
           >
             Semestre 2

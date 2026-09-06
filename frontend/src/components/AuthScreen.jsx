@@ -7,7 +7,7 @@ function BackArrowIcon() {
     <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
       <path
         d="M11 5 L4 12 L11 19 M4 12 H16 A5 5 0 0 1 21 17 V18"
-        stroke="#141414"
+        stroke="#ffffff"
         strokeWidth="2.6"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -19,7 +19,7 @@ function BackArrowIcon() {
 
 function IdIcon() {
   return (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="#141414">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="#7dd3fc">
       <circle cx="12" cy="8" r="4" />
       <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7v1H4v-1z" />
     </svg>
@@ -28,17 +28,17 @@ function IdIcon() {
 
 function LockIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="#141414">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="#7dd3fc">
       <path d="M6 10V8a6 6 0 1 1 12 0v2h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h1zm2 0h8V8a4 4 0 1 0-8 0v2z" />
-      <circle cx="12" cy="15" r="1.6" fill="#fff" />
-      <rect x="11.1" y="15.5" width="1.8" height="3" fill="#fff" />
+      <circle cx="12" cy="15" r="1.6" fill="#060b1c" />
+      <rect x="11.1" y="15.5" width="1.8" height="3" fill="#060b1c" />
     </svg>
   );
 }
 
 function ThumbsUpIcon() {
   return (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="#141414">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="#7dd3fc">
       <path d="M2 21h3V10H2v11zM22 12a2 2 0 0 0-2-2h-5.6l.8-3.9.03-.4a1.5 1.5 0 0 0-.44-1.06L13.7 3 8 8.7A2 2 0 0 0 7.4 10.1V19a2 2 0 0 0 2 2h7a2 2 0 0 0 1.84-1.21l3-7A2 2 0 0 0 22 12z" />
     </svg>
   );
@@ -50,11 +50,11 @@ function EyeIcon() {
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
       <path
         d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"
-        stroke="#141414"
+        stroke="#93c5fd"
         strokeWidth="1.8"
         strokeLinejoin="round"
       />
-      <circle cx="12" cy="12" r="3" stroke="#141414" strokeWidth="1.8" />
+      <circle cx="12" cy="12" r="3" stroke="#93c5fd" strokeWidth="1.8" />
     </svg>
   );
 }
@@ -65,13 +65,13 @@ function EyeOffIcon() {
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
       <path
         d="M9.9 9.9a3 3 0 0 0 4.2 4.2M6.6 6.6C3.6 8.4 1.5 12 1.5 12S5 19 12 19c1.1 0 2.1-.15 3-.42M10.6 5.1A10.6 10.6 0 0 1 12 5c7 0 10.5 7 10.5 7a15 15 0 0 1-3.4 4.3"
-        stroke="#141414"
+        stroke="#93c5fd"
         strokeWidth="1.8"
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
       />
-      <path d="M3 3l18 18" stroke="#141414" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M3 3l18 18" stroke="#93c5fd" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   );
 }
@@ -128,28 +128,35 @@ export default function AuthScreen({
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col px-6 pt-8 pb-10">
+    <div className="min-h-screen bg-[#060b1c] flex flex-col px-6 pt-8 pb-10 relative overflow-hidden">
+      <div className="pointer-events-none absolute -top-24 -right-20 w-72 h-72 rounded-full bg-blue-600/20 blur-3xl" />
+
       {/* Retour */}
       <button
         onClick={onBack}
         aria-label="Retour"
-        className="self-start mb-2 -ml-1 p-1 active:opacity-60 transition"
+        className="self-start mb-2 -ml-1 p-1 active:opacity-60 transition relative"
       >
         <BackArrowIcon />
       </button>
 
       {/* Titre */}
-      <h1 className="text-center text-[#141414] font-extrabold text-3xl tracking-wide mb-8 mt-2">
+      <h1
+        className="text-center text-white font-extrabold text-3xl tracking-wide mb-8 mt-2 relative"
+        style={{ fontFamily: "'Baloo 2', sans-serif" }}
+      >
         {title}
       </h1>
 
       {/* Toggle Connexion / Inscription */}
-      <div className="w-full max-w-sm mx-auto bg-[#141414] rounded-full p-1 flex mb-8">
+      <div className="w-full max-w-sm mx-auto bg-white/5 border border-white/10 rounded-full p-1 flex mb-8 relative">
         <button
           type="button"
           onClick={() => switchMode("login")}
           className={`flex-1 py-3.5 rounded-full text-white font-bold tracking-wide text-sm transition ${
-            mode === "login" ? "border-2 border-white" : "border-2 border-transparent"
+            mode === "login"
+              ? "bg-gradient-to-r from-sky-500 to-blue-600 shadow-[0_0_18px_-2px_rgba(56,189,248,0.6)]"
+              : ""
           }`}
         >
           CONNEXION
@@ -158,7 +165,9 @@ export default function AuthScreen({
           type="button"
           onClick={() => switchMode("register")}
           className={`flex-1 py-3.5 rounded-full text-white font-bold tracking-wide text-sm transition ${
-            mode === "register" ? "border-2 border-white" : "border-2 border-transparent"
+            mode === "register"
+              ? "bg-gradient-to-r from-sky-500 to-blue-600 shadow-[0_0_18px_-2px_rgba(56,189,248,0.6)]"
+              : ""
           }`}
         >
           INSCRIPTION
@@ -166,19 +175,19 @@ export default function AuthScreen({
       </div>
 
       {error && (
-        <div className="w-full max-w-sm mx-auto mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
+        <div className="w-full max-w-sm mx-auto mb-4 text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-2.5 relative">
           {error}
         </div>
       )}
       {info && (
-        <div className="w-full max-w-sm mx-auto mb-4 text-sm text-green-700 bg-green-50 border border-green-200 rounded-xl px-4 py-2.5">
+        <div className="w-full max-w-sm mx-auto mb-4 text-sm text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-2.5 relative">
           {info}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="w-full max-w-sm mx-auto flex flex-col gap-5">
+      <form onSubmit={handleSubmit} className="w-full max-w-sm mx-auto flex flex-col gap-5 relative">
         {/* Identifiant */}
-        <label className="flex items-center gap-3 border border-[#141414]/70 rounded-full px-5 py-4">
+        <label className="flex items-center gap-3 bg-white/5 border border-white/15 rounded-full px-5 py-4 focus-within:border-sky-400 transition">
           <IdIcon />
           <input
             type="text"
@@ -186,12 +195,12 @@ export default function AuthScreen({
             onChange={(e) => setUsername(e.target.value)}
             required
             placeholder="Identifiant"
-            className="flex-1 bg-transparent outline-none text-[#141414] placeholder:text-slate-400"
+            className="flex-1 bg-transparent outline-none text-white placeholder:text-white/35"
           />
         </label>
 
         {/* Mot de passe */}
-        <label className="flex items-center gap-3 border border-[#141414]/70 rounded-full px-5 py-4">
+        <label className="flex items-center gap-3 bg-white/5 border border-white/15 rounded-full px-5 py-4 focus-within:border-sky-400 transition">
           <LockIcon />
           <input
             type={showPassword ? "text" : "password"}
@@ -200,7 +209,7 @@ export default function AuthScreen({
             required
             minLength={8}
             placeholder="Mot de passe"
-            className="flex-1 bg-transparent outline-none text-[#141414] placeholder:text-slate-400"
+            className="flex-1 bg-transparent outline-none text-white placeholder:text-white/35"
           />
           <button
             type="button"
@@ -214,7 +223,7 @@ export default function AuthScreen({
 
         {/* Confirmation (inscription uniquement) */}
         {mode === "register" && (
-          <label className="flex items-center gap-3 border border-[#141414]/70 rounded-full px-5 py-4">
+          <label className="flex items-center gap-3 bg-white/5 border border-white/15 rounded-full px-5 py-4 focus-within:border-sky-400 transition">
             <ThumbsUpIcon />
             <input
               type={showConfirmPassword ? "text" : "password"}
@@ -223,7 +232,7 @@ export default function AuthScreen({
               required
               minLength={8}
               placeholder="Confirmer le mot de passe"
-              className="flex-1 bg-transparent outline-none text-[#141414] placeholder:text-slate-400"
+              className="flex-1 bg-transparent outline-none text-white placeholder:text-white/35"
             />
             <button
               type="button"
@@ -241,7 +250,7 @@ export default function AuthScreen({
         <button
           type="submit"
           disabled={loading}
-          className="mt-2 w-full max-w-[220px] mx-auto py-4 rounded-full bg-[#141414] text-white font-bold tracking-wide text-sm hover:bg-black transition disabled:opacity-60"
+          className="mt-2 w-full max-w-[220px] mx-auto py-4 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold tracking-wide text-sm shadow-[0_0_22px_-4px_rgba(56,189,248,0.6)] hover:brightness-110 transition disabled:opacity-60"
         >
           {loading
             ? "Veuillez patienter..."

@@ -11,7 +11,7 @@ import { useAuth } from "../context/AuthContext";
 
 function CloseIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2.4" strokeLinecap="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.4" strokeLinecap="round">
       <line x1="6" y1="6" x2="18" y2="18" />
       <line x1="18" y1="6" x2="6" y2="18" />
     </svg>
@@ -20,7 +20,7 @@ function CloseIcon() {
 
 function PdfIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2">
       <path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
       <path d="M14 3v5h5" />
     </svg>
@@ -29,7 +29,7 @@ function PdfIcon() {
 
 function LinkIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" strokeWidth="2" strokeLinecap="round">
       <path d="M9 15l6-6" />
       <path d="M11 6l1-1a4 4 0 0 1 6 6l-1 1" />
       <path d="M13 18l-1 1a4 4 0 0 1-6-6l1-1" />
@@ -39,7 +39,7 @@ function LinkIcon() {
 
 function ExternalIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M7 17L17 7" />
       <path d="M9 7h8v8" />
     </svg>
@@ -48,7 +48,7 @@ function ExternalIcon() {
 
 function TrashIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M4 7h16" />
       <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
       <path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" />
@@ -153,25 +153,25 @@ export default function SubjectResourcePanel({ subject, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 sm:p-6"
+      className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 sm:p-6"
       onClick={onClose}
     >
       <div
-        className="bg-white w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl max-h-[88vh] flex flex-col shadow-2xl"
+        className="bg-[#0b1230] border border-white/10 w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl max-h-[88vh] flex flex-col shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-slate-100">
+        <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-white/10">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-0.5">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-sky-400 mb-0.5">
               Ressources
             </p>
-            <h3 className="text-lg font-bold text-slate-900">{subject.name}</h3>
+            <h3 className="text-lg font-bold text-white">{subject.name}</h3>
           </div>
           <button
             onClick={onClose}
             aria-label="Fermer"
-            className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition shrink-0"
+            className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition shrink-0"
           >
             <CloseIcon />
           </button>
@@ -179,13 +179,13 @@ export default function SubjectResourcePanel({ subject, onClose }) {
 
         {/* Contenu scrollable */}
         <div className="overflow-y-auto px-6 py-5 flex-1">
-          {loading && <p className="text-sm text-slate-400">Chargement...</p>}
-          {loadError && <p className="text-sm text-red-600">{loadError}</p>}
+          {loading && <p className="text-sm text-white/40">Chargement...</p>}
+          {loadError && <p className="text-sm text-red-300">{loadError}</p>}
 
           {!loading && !loadError && (
             <ul className="space-y-2.5">
               {resources.length === 0 && (
-                <li className="text-sm text-slate-400 text-center py-8">
+                <li className="text-sm text-white/40 text-center py-8">
                   Aucune ressource pour le moment.
                 </li>
               )}
@@ -197,16 +197,16 @@ export default function SubjectResourcePanel({ subject, onClose }) {
                 return (
                   <li
                     key={r.id}
-                    className="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 hover:border-slate-200 transition"
+                    className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 hover:border-white/20 transition"
                   >
-                    <span className="w-9 h-9 rounded-xl bg-white border border-slate-100 flex items-center justify-center shrink-0">
+                    <span className="w-9 h-9 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center shrink-0">
                       <Icon />
                     </span>
                     <a
                       href={href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 min-w-0 flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-slate-900"
+                      className="flex-1 min-w-0 flex items-center gap-2 text-sm font-medium text-white/80 hover:text-white"
                     >
                       <span className="truncate">{r.title}</span>
                       <ExternalIcon />
@@ -215,7 +215,7 @@ export default function SubjectResourcePanel({ subject, onClose }) {
                       <button
                         onClick={() => handleDelete(r.id)}
                         aria-label="Supprimer"
-                        className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-50 transition shrink-0"
+                        className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-500/10 transition shrink-0"
                       >
                         <TrashIcon />
                       </button>
@@ -227,17 +227,19 @@ export default function SubjectResourcePanel({ subject, onClose }) {
           )}
 
           {isDeveloper && (
-            <div className="mt-6 pt-5 border-t border-slate-100">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-3">
+            <div className="mt-6 pt-5 border-t border-white/10">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-sky-400 mb-3">
                 Ajouter une ressource
               </p>
 
-              <div className="bg-slate-100 rounded-full p-1 flex mb-4">
+              <div className="bg-white/5 border border-white/10 rounded-full p-1 flex mb-4">
                 <button
                   type="button"
                   onClick={() => setAddMode("pdf")}
                   className={`flex-1 py-2 rounded-full text-xs font-semibold transition ${
-                    addMode === "pdf" ? "bg-white shadow-sm text-slate-900" : "text-slate-500"
+                    addMode === "pdf"
+                      ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white"
+                      : "text-white/50"
                   }`}
                 >
                   PDF
@@ -246,7 +248,9 @@ export default function SubjectResourcePanel({ subject, onClose }) {
                   type="button"
                   onClick={() => setAddMode("link")}
                   className={`flex-1 py-2 rounded-full text-xs font-semibold transition ${
-                    addMode === "link" ? "bg-white shadow-sm text-slate-900" : "text-slate-500"
+                    addMode === "link"
+                      ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white"
+                      : "text-white/50"
                   }`}
                 >
                   Lien
@@ -260,11 +264,11 @@ export default function SubjectResourcePanel({ subject, onClose }) {
                     placeholder="Titre (optionnel)"
                     value={pdfTitle}
                     onChange={(e) => setPdfTitle(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-slate-400 transition"
+                    className="w-full bg-white/5 border border-white/15 text-white placeholder:text-white/35 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-sky-400 transition"
                   />
                   <label
                     htmlFor={`pdf-input-${subject.id}`}
-                    className="flex items-center justify-center gap-2 w-full border border-dashed border-slate-300 rounded-xl px-3.5 py-4 text-sm text-slate-500 cursor-pointer hover:border-slate-400 hover:bg-slate-50 transition"
+                    className="flex items-center justify-center gap-2 w-full border border-dashed border-white/20 rounded-xl px-3.5 py-4 text-sm text-white/50 cursor-pointer hover:border-sky-400 hover:bg-white/5 transition"
                   >
                     {pdfFile ? pdfFile.name : "Choisir un fichier PDF (20 Mo max)"}
                   </label>
@@ -278,7 +282,7 @@ export default function SubjectResourcePanel({ subject, onClose }) {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full py-2.5 rounded-xl bg-[#141414] text-white text-sm font-semibold hover:bg-black transition disabled:opacity-60"
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white text-sm font-semibold hover:brightness-110 transition disabled:opacity-60"
                   >
                     {submitting ? "Envoi..." : "Envoyer le PDF"}
                   </button>
@@ -290,26 +294,26 @@ export default function SubjectResourcePanel({ subject, onClose }) {
                     placeholder="Titre"
                     value={linkTitle}
                     onChange={(e) => setLinkTitle(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-slate-400 transition"
+                    className="w-full bg-white/5 border border-white/15 text-white placeholder:text-white/35 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-sky-400 transition"
                   />
                   <input
                     type="url"
                     placeholder="https://..."
                     value={linkUrl}
                     onChange={(e) => setLinkUrl(e.target.value)}
-                    className="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-slate-400 transition"
+                    className="w-full bg-white/5 border border-white/15 text-white placeholder:text-white/35 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-sky-400 transition"
                   />
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full py-2.5 rounded-xl bg-[#141414] text-white text-sm font-semibold hover:bg-black transition disabled:opacity-60"
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white text-sm font-semibold hover:brightness-110 transition disabled:opacity-60"
                   >
                     {submitting ? "Ajout..." : "Ajouter le lien"}
                   </button>
                 </form>
               )}
 
-              {formError && <p className="text-xs text-red-600 mt-2">{formError}</p>}
+              {formError && <p className="text-xs text-red-300 mt-2">{formError}</p>}
             </div>
           )}
         </div>

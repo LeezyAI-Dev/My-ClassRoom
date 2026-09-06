@@ -57,21 +57,21 @@ export default function BannerManager() {
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 mb-8">
-      <h3 className="text-sm font-semibold text-slate-800">Bannière d'accueil</h3>
-      <p className="text-xs text-slate-500 mt-1 mb-4">
+    <div className="bg-white/[0.04] border border-white/10 rounded-[24px] p-5 mb-8 backdrop-blur">
+      <h3 className="text-sm font-semibold text-white">Bannière d'accueil</h3>
+      <p className="text-xs text-white/50 mt-1 mb-4">
         Les images ci-dessous défilent automatiquement en haut de l'écran d'accueil, visibles par
         tous (élèves et développeurs).
       </p>
 
       {error && (
-        <div className="mb-3 text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+        <div className="mb-3 text-xs text-red-300 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
           {error}
         </div>
       )}
 
       {loading ? (
-        <p className="text-xs text-slate-400 mb-4">Chargement...</p>
+        <p className="text-xs text-white/40 mb-4">Chargement...</p>
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-4">
           {images.map((img) => (
@@ -79,7 +79,7 @@ export default function BannerManager() {
               <img
                 src={img.url}
                 alt=""
-                className="w-full h-16 object-cover rounded-md border border-slate-200"
+                className="w-full h-16 object-cover rounded-md border border-white/10"
               />
               <button
                 onClick={() => handleDelete(img.id)}
@@ -90,7 +90,7 @@ export default function BannerManager() {
             </div>
           ))}
           {images.length === 0 && (
-            <p className="col-span-full text-xs text-slate-400">
+            <p className="col-span-full text-xs text-white/40">
               Aucune image pour l'instant. Ajoutez-en une pour activer la bannière.
             </p>
           )}
@@ -103,12 +103,12 @@ export default function BannerManager() {
           type="file"
           accept="image/jpeg,image/png,image/webp"
           onChange={(e) => setFile(e.target.files?.[0] || null)}
-          className="flex-1 text-xs"
+          className="flex-1 text-xs text-white/70 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:bg-white/10 file:text-white"
         />
         <button
           type="submit"
           disabled={submitting}
-          className="px-4 py-1.5 rounded-md bg-slate-900 text-white text-xs font-medium hover:bg-slate-800 disabled:opacity-60 shrink-0"
+          className="px-4 py-1.5 rounded-md bg-sky-500 text-white text-xs font-medium hover:bg-sky-400 disabled:opacity-60 shrink-0"
         >
           {submitting ? "Envoi..." : "Ajouter une image"}
         </button>

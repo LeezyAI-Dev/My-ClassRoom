@@ -1,10 +1,101 @@
 import React from "react";
 
+// --- Icônes ---
+
+function ProfileGlyph() {
+  return (
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="white">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7v1H4v-1z" />
+    </svg>
+  );
+}
+
+function StarIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+      <path d="M12 2 14.7 8.6 22 9.3 16.5 14 18.2 21 12 17.3 5.8 21 7.5 14 2 9.3 9.3 8.6 12 2z" />
+    </svg>
+  );
+}
+
+function CapGlyph() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+      <path d="M12 3 1 8l11 5 9-4.1V17h2V8L12 3z" />
+      <path d="M5 10.5V15c0 1.7 3.1 4 7 4s7-2.3 7-4v-4.5l-7 3.2-7-3.2z" opacity="0.9" />
+    </svg>
+  );
+}
+
+function CodeGlyph() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M9 8 4 12l5 4M15 8l5 4-5 4"
+        stroke="white"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M5 12h14M13 6l6 6-6 6"
+        stroke="white"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function RoleTile({ icon, label, hint, onClick, gradient, iconBg, glow }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-4 rounded-[22px] px-5 py-4 border border-white/10 active:scale-[0.98] transition-transform bg-gradient-to-br ${gradient} ${glow}`}
+    >
+      <div
+        className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg"
+        style={{ background: iconBg }}
+      >
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0 text-left">
+        <p
+          className="text-white font-extrabold text-[15px] uppercase tracking-wide"
+          style={{ fontFamily: "'Baloo 2', sans-serif" }}
+        >
+          {label}
+        </p>
+        <p className="text-white/50 text-xs mt-0.5">{hint}</p>
+      </div>
+      <span className="w-8 h-8 rounded-full bg-black/30 flex items-center justify-center shrink-0">
+        <ArrowIcon />
+      </span>
+    </button>
+  );
+}
+
 export default function WhoAreYou({ onSelectDeveloper, onSelectStudent }) {
   return (
-    <div className="min-h-screen bg-[#1c1c1c] flex flex-col relative overflow-hidden">
-      {/* Header */}
-      <div className="px-6 pt-10 pb-8">
+    <div className="min-h-screen bg-[#060b1c] flex flex-col relative overflow-hidden">
+      {/* Halo décoratif en fond */}
+      <div className="pointer-events-none absolute -top-32 -right-24 w-72 h-72 rounded-full bg-blue-600/25 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 -left-24 w-72 h-72 rounded-full bg-sky-500/10 blur-3xl" />
+
+      {/* En-tête */}
+      <div className="px-6 pt-12 pb-6 relative">
+        <p className="text-sky-400 text-xs font-extrabold uppercase tracking-[0.2em] mb-1.5">
+          Bienvenue
+        </p>
         <h1
           className="text-white text-4xl tracking-wide"
           style={{ fontFamily: "'Baloo 2', sans-serif", fontWeight: 800 }}
@@ -13,99 +104,45 @@ export default function WhoAreYou({ onSelectDeveloper, onSelectStudent }) {
         </h1>
       </div>
 
-      {/* Wavy white panel */}
-      <div className="relative flex-1">
-        <svg
-          className="absolute -top-px left-0 w-full"
-          viewBox="0 0 1440 100"
-          preserveAspectRatio="none"
-          style={{ height: "70px" }}
-        >
-          <path
-            d="M0,70 C280,95 480,15 780,35 C1050,53 1250,8 1440,10 L1440,100 L0,100 Z"
-            fill="#ffffff"
-          />
-        </svg>
-
-        <div className="bg-white pt-16 pb-20 px-6 min-h-full flex flex-col items-center">
-          {/* Avatar + settings row */}
-          <div className="w-full flex items-center justify-between mb-8">
-            <div className="flex-1" />
-            <svg width="130" height="130" viewBox="0 0 140 140" fill="none">
-              <circle cx="70" cy="70" r="65" stroke="#1c1c1c" strokeWidth="5" fill="none" />
-              <circle cx="70" cy="54" r="23" fill="#1c1c1c" />
-              <path
-                d="M20,132 C20,98 42,86 70,86 C98,86 120,98 120,132"
-                fill="none"
-                stroke="#1c1c1c"
-                strokeWidth="0"
-              />
-              <clipPath id="avatarClip">
-                <circle cx="70" cy="70" r="65" />
-              </clipPath>
-              <path
-                d="M14,140 C14,98 38,82 70,82 C102,82 126,98 126,140 Z"
-                fill="#1c1c1c"
-                clipPath="url(#avatarClip)"
-              />
-            </svg>
-            <div className="flex-1 flex justify-end">
-              <div className="bg-[#1c1c1c] rounded-xl p-3">
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-                  <line x1="3" y1="7" x2="21" y2="7" stroke="white" strokeWidth="1.6" strokeLinecap="round" />
-                  <circle cx="9" cy="7" r="2" fill="#1c1c1c" stroke="white" strokeWidth="1.6" />
-                  <line x1="3" y1="15" x2="21" y2="15" stroke="white" strokeWidth="1.6" strokeLinecap="round" />
-                  <circle cx="16" cy="15" r="2" fill="#1c1c1c" stroke="white" strokeWidth="1.6" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          {/* Question */}
-          <p
-            className="text-3xl text-slate-800 mb-10 italic"
-            style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-          >
-            vous êtes&nbsp;?
-          </p>
-
-          {/* Buttons */}
-          <div className="w-full max-w-xs space-y-5">
-            <button
-              onClick={() => {}}
-              className="w-full py-4 px-4 rounded-2xl bg-[#1c1c1c] text-white text-lg"
-              style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-            >
-              Délégué(e)
-            </button>
-            <button
-              onClick={onSelectStudent}
-              className="w-full py-4 px-4 rounded-2xl bg-[#1c1c1c] text-white text-lg hover:bg-black transition"
-              style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-            >
-              Élève
-            </button>
-            <button
-              onClick={onSelectDeveloper}
-              className="w-full py-4 px-4 rounded-2xl bg-[#1c1c1c] text-white text-lg hover:bg-black transition"
-              style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-            >
-              Développeur
-            </button>
-          </div>
+      {/* Contenu */}
+      <div className="relative flex-1 flex flex-col items-center px-6 pt-6 pb-12">
+        {/* Avatar */}
+        <div className="w-28 h-28 rounded-full flex items-center justify-center bg-gradient-to-br from-[#1660e0] to-[#05122c] border border-white/10 shadow-[0_0_36px_-4px_rgba(37,120,255,0.55)] mb-8">
+          <ProfileGlyph />
         </div>
 
-        <svg
-          className="absolute -bottom-px left-0 w-full"
-          viewBox="0 0 1440 100"
-          preserveAspectRatio="none"
-          style={{ height: "70px" }}
-        >
-          <path
-            d="M0,30 C190,92 390,47 660,65 C960,85 1160,25 1440,90 L1440,0 L0,0 Z"
-            fill="#ffffff"
+        <p className="text-white text-2xl font-semibold mb-8">vous êtes&nbsp;?</p>
+
+        {/* Cases de rôle */}
+        <div className="w-full max-w-sm space-y-4">
+          <RoleTile
+            icon={<StarIcon />}
+            label="Délégué(e)"
+            hint="Bientôt disponible"
+            onClick={() => {}}
+            gradient="from-[#6d28d9] to-[#1b0a35]"
+            iconBg="linear-gradient(135deg, #c4b5fd, #6d28d9)"
+            glow="shadow-[0_0_24px_-6px_rgba(147,51,234,0.4)]"
           />
-        </svg>
+          <RoleTile
+            icon={<CapGlyph />}
+            label="Élève"
+            hint="Consulter mon espace de cours"
+            onClick={onSelectStudent}
+            gradient="from-[#0e8f6b] to-[#04211b]"
+            iconBg="linear-gradient(135deg, #34d399, #047857)"
+            glow="shadow-[0_0_24px_-4px_rgba(16,185,129,0.5)]"
+          />
+          <RoleTile
+            icon={<CodeGlyph />}
+            label="Développeur"
+            hint="Gérer les contenus de l'établissement"
+            onClick={onSelectDeveloper}
+            gradient="from-[#1660e0] to-[#05122c]"
+            iconBg="linear-gradient(135deg, #4da3ff, #1454d8)"
+            glow="shadow-[0_0_24px_-4px_rgba(37,120,255,0.55)]"
+          />
+        </div>
       </div>
     </div>
   );

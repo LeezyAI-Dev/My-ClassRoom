@@ -40,11 +40,11 @@ router.post("/", requireAuth, async (req, res) => {
   try {
     const { day_of_week, start_time, end_time, subject_id, room, teacher } = req.body || {};
 
-    if (!day_of_week || !start_time || !end_time) {
+    if (day_of_week === undefined || day_of_week === null || !start_time || !end_time) {
       return res.status(400).json({ error: "Jour, heure de début et heure de fin sont requis." });
     }
-    if (day_of_week < 1 || day_of_week > 6) {
-      return res.status(400).json({ error: "Le jour doit être compris entre lundi (1) et samedi (6)." });
+    if (day_of_week < 0 || day_of_week > 6) {
+      return res.status(400).json({ error: "Le jour doit être compris entre dimanche (0) et samedi (6)." });
     }
     if (!isValidTime(start_time) || !isValidTime(end_time)) {
       return res.status(400).json({ error: "Format d'heure invalide (attendu HH:MM)." });
@@ -94,8 +94,8 @@ router.put("/:id", requireAuth, async (req, res) => {
     const room = req.body.room !== undefined ? req.body.room : existing.room;
     const teacher = req.body.teacher !== undefined ? req.body.teacher : existing.teacher;
 
-    if (day_of_week < 1 || day_of_week > 6) {
-      return res.status(400).json({ error: "Le jour doit être compris entre lundi (1) et samedi (6)." });
+    if (day_of_week < 0 || day_of_week > 6) {
+      return res.status(400).json({ error: "Le jour doit être compris entre dimanche (0) et samedi (6)." });
     }
     if (!isValidTime(start_time) || !isValidTime(end_time)) {
       return res.status(400).json({ error: "Format d'heure invalide (attendu HH:MM)." });

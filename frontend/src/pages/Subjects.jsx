@@ -19,15 +19,15 @@ function BackArrowIcon() {
 
 function ChevronRightIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9 6l6 6-6 6" />
     </svg>
   );
 }
 
 const GROUP_STYLE = {
-  generale: { bg: "bg-blue-50", text: "text-blue-600" },
-  technique: { bg: "bg-amber-50", text: "text-amber-600" },
+  generale: { gradient: "from-[#1660e0] to-[#05122c]", iconBg: "linear-gradient(135deg, #4da3ff, #1454d8)" },
+  technique: { gradient: "from-[#f2960c] to-[#3a1503]", iconBg: "linear-gradient(135deg, #fdba74, #c2410c)" },
 };
 
 function SubjectCard({ subject, group, onSelect }) {
@@ -37,14 +37,15 @@ function SubjectCard({ subject, group, onSelect }) {
   return (
     <button
       onClick={() => onSelect(subject)}
-      className="w-full flex items-center gap-4 bg-white border border-slate-200 rounded-2xl px-4 py-3.5 text-left hover:border-slate-300 hover:shadow-sm transition"
+      className={`w-full flex items-center gap-4 rounded-2xl px-4 py-3.5 text-left border border-white/10 active:scale-[0.98] transition-transform bg-gradient-to-br ${style.gradient}`}
     >
       <span
-        className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-base shrink-0 ${style.bg} ${style.text}`}
+        className="w-11 h-11 rounded-xl flex items-center justify-center font-bold text-base text-white shrink-0 shadow-md"
+        style={{ background: style.iconBg }}
       >
         {initial}
       </span>
-      <span className="flex-1 font-semibold text-slate-800 text-[15px]">{subject.name}</span>
+      <span className="flex-1 font-semibold text-white text-[15px]">{subject.name}</span>
       <ChevronRightIcon />
     </button>
   );
@@ -67,10 +68,14 @@ export default function Subjects({ onBack }) {
   const subjects = data[tab] || [];
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-[#060b1c]">
       {/* Header */}
-      <header className="bg-[#141414] px-6 pt-8 pb-7 flex items-center gap-4">
-        <button onClick={onBack} aria-label="Retour" className="active:opacity-70 transition">
+      <header className="px-6 pt-9 pb-6 flex items-center gap-4">
+        <button
+          onClick={onBack}
+          aria-label="Retour"
+          className="w-10 h-10 rounded-full border-2 border-white/30 flex items-center justify-center active:opacity-70 transition shrink-0"
+        >
           <BackArrowIcon />
         </button>
         <h1
@@ -81,13 +86,15 @@ export default function Subjects({ onBack }) {
         </h1>
       </header>
 
-      <main className="max-w-md mx-auto px-6 py-7">
+      <main className="max-w-md mx-auto px-6 pb-10">
         {/* Toggle Générales / Techniques */}
-        <div className="bg-slate-200/70 rounded-full p-1 flex mb-6">
+        <div className="bg-white/5 border border-white/10 rounded-full p-1 flex mb-6">
           <button
             onClick={() => setTab("generale")}
             className={`flex-1 py-2.5 rounded-full text-sm font-semibold transition ${
-              tab === "generale" ? "bg-white shadow-sm text-slate-900" : "text-slate-500"
+              tab === "generale"
+                ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-[0_0_16px_-2px_rgba(56,189,248,0.6)]"
+                : "text-white/50"
             }`}
           >
             Générales
@@ -95,16 +102,18 @@ export default function Subjects({ onBack }) {
           <button
             onClick={() => setTab("technique")}
             className={`flex-1 py-2.5 rounded-full text-sm font-semibold transition ${
-              tab === "technique" ? "bg-white shadow-sm text-slate-900" : "text-slate-500"
+              tab === "technique"
+                ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-[0_0_16px_-2px_rgba(245,158,11,0.6)]"
+                : "text-white/50"
             }`}
           >
             Techniques
           </button>
         </div>
 
-        {loading && <p className="text-sm text-slate-400 text-center py-10">Chargement...</p>}
+        {loading && <p className="text-sm text-white/40 text-center py-10">Chargement...</p>}
         {error && (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+          <div className="text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">
             {error}
           </div>
         )}
@@ -112,7 +121,7 @@ export default function Subjects({ onBack }) {
         {!loading && !error && (
           <div className="space-y-2.5">
             {subjects.length === 0 && (
-              <p className="text-sm text-slate-400 text-center py-10">Aucune matière ici.</p>
+              <p className="text-sm text-white/40 text-center py-10">Aucune matière ici.</p>
             )}
             {subjects.map((subject) => (
               <SubjectCard
