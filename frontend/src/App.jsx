@@ -1,75 +1,23 @@
-import React, { useState } from "react";
-import { AuthProvider, useAuth } from "./context/AuthContext";
-import WhoAreYou from "./pages/WhoAreYou";
-import DevAuth from "./pages/DevAuth";
-import StudentAuth from "./pages/StudentAuth";
-import Dashboard from "./pages/Dashboard";
-import Subjects from "./pages/Subjects";
-import Schedule from "./pages/Schedule";
-import AverageCalculator from "./pages/AverageCalculator";
-import Eyes from "./pages/Eyes";
+import { useAuth } from "./context/AuthContext";
+import PinSetup from "./pages/PinSetup";
+import PinLock from "./pages/PinLock";
+// ... tes autres imports
 
-// Écrans possibles :
-// "who" -> "devAuth" | "studentAuth" -> "dashboard" -> "subjects" | "schedule" | "average" | "eyes"
 function AppContent() {
-  const [screen, setScreen] = useState("who");
-  const { logout } = useAuth();
+  const { token, isLoading, isLocked, needsPinSetup, setupPin, verifyPin, logout } = useAuth();
 
-  const handleLogout = () => {
-    logout();
-    setScreen("who");
-  };
+  if (isLoading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Chargement...</div>;
 
-  if (screen === "who") {
-    return (
-      <WhoAreYou
-        onSelectDeveloper={() => setScreen("devAuth")}
-        onSelectStudent={() => setScreen("studentAuth")}
-      />
-    );
+  // 1. Si session existe mais PIN verrouillé
+  if (token && isLocked) {
+    return <PinLock onUnlock={verifyPin} onLogout={logout} />;
   }
 
-  if (screen === "devAuth") {
-    return (
-      <DevAuth
-        onBack={() => setScreen("who")}
-        onLoginSuccess={() => setScreen("dashboard")}
-      />
-    );
+  // 2. Si session existe mais pas de PIN encore créé
+  if (token && needsPinSetup) {
+    return <PinSetup onComplete={setupPin} onCancel={() => {}} />;
   }
 
-  if (screen === "studentAuth") {
-    return (
-      <StudentAuth
-        onBack={() => setScreen("who")}
-        onLoginSuccess={() => setScreen("dashboard")}
-      />
-    );
-  }
-
-  if (screen === "subjects") {
-    return <Subjects onBack={() => setScreen("dashboard")} />;
-  }
-
-  if (screen === "schedule") {
-    return <Schedule onBack={() => setScreen("dashboard")} />;
-  }
-
-  if (screen === "average") {
-    return <AverageCalculator onBack={() => setScreen("dashboard")} />;
-  }
-
-  if (screen === "eyes") {
-    return <Eyes onBack={() => setScreen("dashboard")} />;
-  }
-
-  return <Dashboard onNavigate={(key) => setScreen(key)} onLogout={handleLogout} />;
-}
-
-export default function App() {
-  return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
-  );
+  // 3. Sinon ton routing normal (WhoAreYou, Auth, Dashboard...)
+  return <TonRoutingNormal />;
 }
