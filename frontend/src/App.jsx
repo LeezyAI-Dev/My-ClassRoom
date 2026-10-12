@@ -8,30 +8,31 @@ import DevAuth from "./pages/DevAuth";
 import Dashboard from "./pages/Dashboard";
 
 export default function App() {
-  const { token, isLoading, isLocked, needsPinSetup, setupPin, verifyPin, logout } = useAuth();
-  const [view, setView] = useState("whoareyou"); // whoareyou | student | developer
+  const auth = useAuth();
+  if (!auth) {
+    return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Chargement auth...</div>;
+  }
+  const { token, isLoading, isLocked, needsPinSetup, setupPin, verifyPin, logout } = auth;
+  const [view, setView] = useState("whoareyou");
 
   if (isLoading) {
     return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-white">Chargement...</div>;
   }
 
-  // 1. Verrouillé par PIN
   if (token && isLocked) {
     return <PinLock onUnlock={verifyPin} onLogout={logout} />;
   }
 
-  // 2. Première connexion -> créer PIN
   if (token && needsPinSetup) {
     return <PinSetup onComplete={setupPin} />;
   }
 
-  // 3. Pas connecté -> WhoAreYou
   if (!token) {
     if (view === "student") {
-      return <StudentAuth onBack={() => setView("whoareyou")} onLoginSuccess={() => setView("whoareyou")} />;
+      return <StudentAuth onBack={() => setView("whoareyou")} onLoginSuccess={() => {}} />;
     }
     if (view === "developer") {
-      return <DevAuth onBack={() => setView("whoareyou")} onLoginSuccess={() => setView("whoareyou")} />;
+      return <DevAuth onBack={() => setView("whoareyou")} onLoginSuccess={() => {}} />;
     }
     return (
       <WhoAreYou
@@ -41,6 +42,5 @@ export default function App() {
     );
   }
 
-  // 4. Connecté et déverrouillé
   return <Dashboard />;
 }

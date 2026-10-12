@@ -11,7 +11,6 @@ export function AuthProvider({ children }) {
   const [needsPinSetup, setNeedsPinSetup] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Au démarrage : on restore la session
   useEffect(() => {
     const session = pinStorage.getSession();
     if (session) {
@@ -19,9 +18,9 @@ export function AuthProvider({ children }) {
       setUser(session.user);
       if (pinStorage.hasPin()) {
         setHasPin(true);
-        setIsLocked(true); // on doit demander le PIN
+        setIsLocked(true);
       } else {
-        setNeedsPinSetup(true); // première connexion, doit créer PIN
+        setNeedsPinSetup(true);
       }
     }
     setIsLoading(false);
@@ -32,10 +31,9 @@ export function AuthProvider({ children }) {
     setToken(newToken);
     setUser(fullUser);
     pinStorage.saveSession(newToken, fullUser);
-
     if (pinStorage.hasPin()) {
       setHasPin(true);
-      setIsLocked(false); // déjà connecté, pas besoin de redemander tout de suite
+      setIsLocked(false);
     } else {
       setNeedsPinSetup(true);
     }
@@ -57,10 +55,6 @@ export function AuthProvider({ children }) {
     return false;
   };
 
-  const lock = () => {
-    if (hasPin) setIsLocked(true);
-  };
-
   const logout = () => {
     setToken(null);
     setUser(null);
@@ -68,13 +62,6 @@ export function AuthProvider({ children }) {
     setHasPin(false);
     setNeedsPinSetup(false);
     pinStorage.clearAll();
-  };
-
-  const clearPinOnly = () => {
-    pinStorage.clearPin();
-    setHasPin(false);
-    setNeedsPinSetup(true);
-    setIsLocked(false);
   };
 
   const isDeveloper = Boolean(token && user && user.role === "developer");
@@ -96,9 +83,12 @@ export function AuthProvider({ children }) {
         logout,
         setupPin,
         verifyPin,
-        lock,
-        clearPinOnly,
-        setNeedsPinSetup,
+        clearPinOnly: () => {
+          pinStorage.clearPin();
+          setHasPin(false);
+          setNeedsPinSetup(true);
+          setIsLocked(false);
+        },
       }}
     >
       {children}
@@ -107,5 +97,10 @@ export function AuthProvider({ children }) {
 }
 
 export function useAuth() {
-  return useContext(AuthContext);
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    // Retourne un objet vide au lieu de null pour éviter le crash destructuring
+    return null;
+  }
+  return ctx;
 }
