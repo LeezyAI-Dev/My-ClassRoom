@@ -1,14 +1,17 @@
 const { createClient } = require("@libsql/client");
+const path = require("path");
+
+// FALLBACK LOCAL : si TURSO_DATABASE_URL n'est pas défini, on utilise le fichier local myclassroom.db
+const dbPath = path.join(__dirname, "myclassroom.db");
+const url = process.env.TURSO_DATABASE_URL || `file:${dbPath}`;
 
 const client = createClient({
-  url: process.env.TURSO_DATABASE_URL,
-  authToken: process.env.TURSO_AUTH_TOKEN,
+  url,
+  authToken: process.env.TURSO_AUTH_TOKEN || undefined,
 });
 
-// V1 : compte développeur, matières (structure), emploi du temps (structure).
-// V1.1 : ressources par matière (PDF uploadés, liens de redirection).
-// V1.2 : suspension de compte élève (compte développeur).
-// V1.3 : CHECKLIST + voyant présence (last_seen) pour DEV.
+console.log(`📦 DB URL: ${url.includes("file:") ? "LOCAL FILE ("+dbPath+")" : "TURSO"}`);
+
 const SCHEMA_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS developers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -99,82 +102,48 @@ const SCHEMA_STATEMENTS = [
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`,
   `CREATE INDEX IF NOT EXISTS idx_eyes_comments_post_id ON eyes_comments(post_id)`,
+  `CREATE TABLE IF NOT EXISTS grades (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_type TEXT NOT NULL CHECK (user_type IN ('developer', 'student')),
+    user_id INTEGER NOT NULL,
+    subject_id INTEGER NOT NULL REFERENCES subjects(id) ON DELETE CASCADE,
+    date_received TEXT NOT NULL,
+    note_value TEXT NOT NULL,
+    photo_url TEXT,
+    file_path TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(user_type, user_id, subject_id)
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_grades_user ON grades(user_type, user_id)`,
 ];
 
-const GENERALES = [
-  "Mathématiques",
-  "Français",
-  "CMC",
-  "Législation",
-  "EDHC",
-  "Physique Chimie",
-  "EPS",
-  "Anglais",
-];
-const TECHNIQUES = [
-  "Photogravure",
-  "Impression",
-  "P.A.O",
-  "Façonnage",
-  "Fabrication",
-  "Maquette",
-];
+const GENERALES = ["Mathématiques","Français","CMC","Législation","EDHC","Physique Chimie","EPS","Anglais"];
+const TECHNIQUES = ["Photogravure","Impression","P.A.O","Façonnage","Fabrication","Maquette"];
 
-// Migration V1.2 : suspended
-async function ensureSuspendedColumn() {
-  try {
-    await client.execute("ALTER TABLE students ADD COLUMN suspended INTEGER NOT NULL DEFAULT 0");
-  } catch (err) {
-    if (!/duplicate column/i.test(err.message || "")) {
-      throw err;
-    }
-  }
-}
-
-// Migration V1.3 : CHECKLIST - last_seen pour voyant vert/rouge
-async function ensurePresenceColumn() {
-  try {
-    await client.execute("ALTER TABLE students ADD COLUMN last_seen TEXT");
-  } catch (err) {
-    if (!/duplicate column/i.test(err.message || "")) {
-      console.log("students last_seen déjà existant");
-    }
-  }
-  try {
-    await client.execute("ALTER TABLE developers ADD COLUMN last_seen TEXT");
-  } catch (err) {
-    if (!/duplicate column/i.test(err.message || "")) {
-      console.log("developers last_seen déjà existant");
-    }
-  }
+async function ensureColumns() {
+  try { await client.execute("ALTER TABLE students ADD COLUMN suspended INTEGER NOT NULL DEFAULT 0"); } catch {}
+  try { await client.execute("ALTER TABLE students ADD COLUMN last_seen TEXT"); } catch {}
+  try { await client.execute("ALTER TABLE developers ADD COLUMN last_seen TEXT"); } catch {}
 }
 
 async function initDb() {
   for (const statement of SCHEMA_STATEMENTS) {
-    await client.execute(statement);
+    try { await client.execute(statement); } catch(e){ console.error("Schema error:", e.message, statement.slice(0,80)); }
   }
-
-  await ensureSuspendedColumn();
-  await ensurePresenceColumn();
-
-  const { rows } = await client.execute("SELECT COUNT(*) AS count FROM subjects");
-  const subjectCount = rows[0].count;
-  if (subjectCount === 0) {
-    const insertStatements = [];
-    GENERALES.forEach((name, i) => {
-      insertStatements.push({
-        sql: "INSERT INTO subjects (name, category, position) VALUES (?, ?, ?)",
-        args: [name, "generale", i],
-      });
-    });
-    TECHNIQUES.forEach((name, i) => {
-      insertStatements.push({
-        sql: "INSERT INTO subjects (name, category, position) VALUES (?, ?, ?)",
-        args: [name, "technique", i],
-      });
-    });
-    await client.batch(insertStatements, "write");
-  }
+  await ensureColumns();
+  try {
+    const { rows } = await client.execute("SELECT COUNT(*) AS count FROM subjects");
+    const subjectCount = rows[0].count;
+    if (subjectCount === 0) {
+      const inserts = [];
+      GENERALES.forEach((name, i) => inserts.push({ sql: "INSERT INTO subjects (name, category, position) VALUES (?, ?, ?)", args: [name, "generale", i] }));
+      TECHNIQUES.forEach((name, i) => inserts.push({ sql: "INSERT INTO subjects (name, category, position) VALUES (?, ?, ?)", args: [name, "technique", i] }));
+      await client.batch(inserts, "write");
+      console.log("✅ Matières insérées");
+    }
+  } catch(e){ console.error("Init subjects error:", e.message); }
 }
 
-module.exports = { client, initDb };
+async function init(){ return initDb(); }
+
+module.exports = { client, initDb, init };

@@ -1,54 +1,80 @@
-require("dotenv").config();
-const path = require("path");
 const express = require("express");
 const cors = require("cors");
-const { initDb } = require("./db");
-const authRoutes = require("./routes/auth");
-const studentAuthRoutes = require("./routes/studentAuth");
-const subjectsRoutes = require("./routes/subjects");
-const scheduleRoutes = require("./routes/schedule");
-const { router: resourcesRoutes, UPLOAD_DIR } = require("./routes/resources");
-const resourceActionsRoutes = require("./routes/resourceActions");
-const { router: bannerRoutes } = require("./routes/banner");
-const { router: eyesRoutes } = require("./routes/eyes");
-const { requireAuth } = require("./middleware/auth");
+const path = require("path");
+const fs = require("fs");
+require("dotenv").config();
+
+let dbModule;
+try {
+  dbModule = require("./db");
+  console.log("📦 DB module chargé");
+} catch(e) {
+  console.error("❌ Erreur chargement db.js:", e.message);
+  process.exit(1);
+}
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-app.use("/api/auth", authRoutes);
-app.use("/api/auth/student", studentAuthRoutes);
-app.use("/api/subjects", subjectsRoutes);
-app.use("/api/subjects", resourcesRoutes); // /api/subjects/:id/resources[...]
-app.use("/api/resources", resourceActionsRoutes); // /api/resources/:id (suppression)
-app.use("/api/schedule", scheduleRoutes);
-app.use("/api/banner", bannerRoutes);
-app.use("/api/eyes", eyesRoutes);
+function tryLoadRouter(routePath) {
+  const fullPath = path.join(__dirname, routePath + ".js");
+  if (!fs.existsSync(fullPath)) return null;
+  try {
+    const mod = require(`./${routePath}`);
+    const router = mod.router || mod.default || mod;
+    if (typeof router !== "function") return null;
+    return router;
+  } catch (e) {
+    console.log(`❌ Erreur ${routePath}: ${e.message}`);
+    return null;
+  }
+}
 
-// Fichiers PDF uploadés, servis tels quels (nom aléatoire, lecture seule).
-app.use("/uploads", express.static(UPLOAD_DIR));
+async function start() {
+  try {
+    if (dbModule.init) await dbModule.init();
+    else if (dbModule.initDb) await dbModule.initDb();
+    console.log("✅ DB initialisée");
+  } catch (e) {
+    console.error("❌ Erreur init DB:", e.message);
+  }
 
-// Route protégée minimale : confirme juste que le token est valide.
-// Sert de base pour le futur tableau de bord développeur.
-app.get("/api/dashboard/ping", requireAuth, (req, res) => {
-  res.json({ message: `Bienvenue ${req.developer.username}, page blanche prête.` });
-});
+  // Auth
+  let r = tryLoadRouter("routes/studentAuth") || tryLoadRouter("routes/students");
+  if (r) { app.use("/api/students", r); console.log("✅ /api/students"); }
+  r = tryLoadRouter("routes/devAuth") || tryLoadRouter("routes/developerAuth") || tryLoadRouter("routes/developers");
+  if (r) { app.use("/api/developers", r); console.log("✅ /api/developers"); }
+  r = tryLoadRouter("routes/auth");
+  if (r) { app.use("/api/auth", r); console.log("✅ /api/auth"); }
 
-app.get("/", (req, res) => {
-  res.json({ status: "My ClassRoom API - V1" });
-});
+  // BANNERS - on monte sur les 2 chemins pour fixer le 404
+  const bannerRouter = tryLoadRouter("routes/banners") || tryLoadRouter("routes/banner");
+  if (bannerRouter) {
+    app.use("/api/banners", bannerRouter);
+    app.use("/api/banner", bannerRouter); // <- FIX pour ton frontend qui appelle /api/banner
+    console.log("✅ /api/banners + /api/banner -> même route");
+  }
 
-const PORT = process.env.PORT || 4000;
+  r = tryLoadRouter("routes/eyes");
+  if (r) { app.use("/api/eyes", r); console.log("✅ /api/eyes"); }
+  r = tryLoadRouter("routes/subjects");
+  if (r) { app.use("/api/subjects", r); console.log("✅ /api/subjects"); }
+  r = tryLoadRouter("routes/schedule");
+  if (r) { app.use("/api/schedule", r); console.log("✅ /api/schedule"); }
+  r = tryLoadRouter("routes/grades");
+  if (r) { app.use("/api/grades", r); console.log("✅ /api/grades"); }
 
-// On attend que les tables Turso soient prêtes avant d'accepter des requêtes.
-initDb()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`My ClassRoom backend démarré sur http://localhost:${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error("Erreur lors de l'initialisation de la base de données Turso :", err);
-    process.exit(1);
+  app.get("/", (req, res) => res.json({ ok: true, v: "LOCAL-FIX-ULTIMATE" }));
+
+  app.use((err, req, res, next) => {
+    console.error("❌ Erreur route:", err.message);
+    res.status(500).json({ error: err.message });
   });
+
+  const PORT = process.env.PORT || 4000;
+  app.listen(PORT, () => console.log(`🚀 My Classroom LOCAL sur http://localhost:${PORT}`));
+}
+
+start();

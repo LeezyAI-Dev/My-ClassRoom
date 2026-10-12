@@ -4,6 +4,7 @@ import BannerCarousel from "../components/BannerCarousel";
 import BannerManager from "../components/BannerManager";
 import lpmiLogo from "../assets/lpmi-logo.png";
 import Checklist from "./Checklist";
+import RegistreNotes from "./RegistreNotes";
 
 const ROLE_LABEL = { developer: "développeur", student: "élève" };
 
@@ -14,6 +15,7 @@ function CalendarIcon(){return(<svg width="24" height="24" viewBox="0 0 24 24" f
 function CalcIcon(){return(<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="4" y="2.5" width="16" height="19" rx="2.5" fill="none" stroke="white" strokeWidth="1.8"/><rect x="6.5" y="5" width="11" height="4.5" rx="1" fill="white"/>{[0,1].map((row)=>[0,1,2].map((col)=><rect key={`${row}-${col}`} x={6.7+col*3.8} y={12+row*4.3} width="2.6" height="2.6" rx="0.6" fill="white"/>))}</svg>)}
 function EyeIconSimple(){return(<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" stroke="white" strokeWidth="1.8" strokeLinejoin="round"/><circle cx="12" cy="12" r="3.2" fill="white"/></svg>)}
 function ChecklistIcon(){return(<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 5h6M9 12h6M9 19h6M5 5l2 2 3-3M5 12l2 2 3-3M5 19l2 2 3-3" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>)}
+function NotesIcon(){return(<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M7 3h7l3 3v15a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" stroke="white" strokeWidth="1.8"/><path d="M14 3v3h3" stroke="white" strokeWidth="1.8"/><path d="M9 12h6M9 16h6" stroke="white" strokeWidth="1.8" strokeLinecap="round"/></svg>)}
 function ArrowIcon(){return(<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"/></svg>)}
 
 function MenuTile({ icon, label, onClick, gradient, iconBg, glow, active = true }) {
@@ -35,14 +37,12 @@ export default function Dashboard({ onNavigate: onNavigateProp, onLogout }) {
   const [currentView, setCurrentView] = useState("dashboard");
   const [selectedSubject, setSelectedSubject] = useState(null);
 
-  // Navigation interne
   const onNavigate = (view, data) => {
     if (data) setSelectedSubject(data);
     setCurrentView(view);
     if (onNavigateProp) onNavigateProp(view, data);
   };
 
-  // HEARTBEAT - voyant vert/rouge
   useEffect(() => {
     if (!user) return;
     const sendHeartbeat = async () => {
@@ -56,12 +56,15 @@ export default function Dashboard({ onNavigate: onNavigateProp, onLogout }) {
       } catch {}
     };
     sendHeartbeat();
-    const id = setInterval(sendHeartbeat, 30000); // toutes les 30s
+    const id = setInterval(sendHeartbeat, 30000);
     return () => clearInterval(id);
   }, [user]);
 
   if (currentView === "checklist") {
     return <Checklist onBack={() => setCurrentView("dashboard")} />;
+  }
+  if (currentView === "registre-notes") {
+    return <RegistreNotes onBack={() => setCurrentView("dashboard")} />;
   }
 
   return (
@@ -81,7 +84,7 @@ export default function Dashboard({ onNavigate: onNavigateProp, onLogout }) {
       </header>
 
       <main className="flex-1 px-5 pb-6">
-        <div className="max-w-md mx-auto mb-6 h-[190px] rounded-[26px] border border-white/10 overflow-hidden"><BannerCarousel/></div>
+        <BannerCarousel/>
         {isDeveloper && <div className="max-w-md mx-auto mb-6"><BannerManager/></div>}
         {isStudent && <p className="max-w-md mx-auto text-xs text-white/40 mb-5 text-center">Espace élève : consultation seule. Le contenu se met à jour automatiquement.</p>}
 
@@ -90,10 +93,10 @@ export default function Dashboard({ onNavigate: onNavigateProp, onLogout }) {
           <MenuTile icon={<CalendarIcon/>} label="Emploi du temps" onClick={()=>onNavigate("schedule")} gradient="from-[#0e8f6b] to-[#04211b]" iconBg="linear-gradient(135deg, #34d399, #047857)" glow="shadow-[0_0_24px_-4px_rgba(16,185,129,0.5)]"/>
           {isDeveloper ? (
             <MenuTile icon={<ChecklistIcon/>} label="Checklist" onClick={()=>onNavigate("checklist")} gradient="from-[#dc2626] to-[#1a0505]" iconBg="linear-gradient(135deg, #f87171, #dc2626)" glow="shadow-[0_0_24px_-4px_rgba(239,68,68,0.6)]"/>
-          ) : <MenuTile active={false} gradient="from-[#123a8f] to-[#050d24]" glow="shadow-[0_0_20px_-6px_rgba(59,130,246,0.4)]"/>}
+          ) : <MenuTile icon={<NotesIcon/>} label="Registre de notes" onClick={()=>onNavigate("registre-notes")} gradient="from-[#dc2626] to-[#1a0505]" iconBg="linear-gradient(135deg, #f87171, #dc2626)" glow="shadow-[0_0_24px_-4px_rgba(239,68,68,0.6)]"/>}
 
           <MenuTile icon={<CalcIcon/>} label="Calculateur de moyenne" onClick={()=>onNavigate("average")} gradient="from-[#f2960c] to-[#3a1503]" iconBg="linear-gradient(135deg, #fdba74, #c2410c)" glow="shadow-[0_0_24px_-4px_rgba(245,158,11,0.55)]"/>
-          <MenuTile active={false} gradient="from-[#6d28d9] to-[#1b0a35]" glow="shadow-[0_0_20px_-6px_rgba(147,51,234,0.4)]"/>
+          <MenuTile icon={<NotesIcon/>} label="Registre de notes" onClick={()=>onNavigate("registre-notes")} gradient="from-[#6d28d9] to-[#1b0a35]" iconBg="linear-gradient(135deg, #a78bfa, #6d28d9)" glow="shadow-[0_0_20px_-6px_rgba(147,51,234,0.4)]"/>
           <MenuTile active={false} gradient="from-[#123a8f] to-[#050d24]" glow="shadow-[0_0_20px_-6px_rgba(59,130,246,0.4)]"/>
 
           <MenuTile active={false} gradient="from-[#0f8f9d] to-[#052226]" glow="shadow-[0_0_20px_-6px_rgba(20,184,166,0.35)]"/>
