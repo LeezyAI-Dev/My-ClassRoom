@@ -8,7 +8,7 @@ const client = createClient({
 // V1 : compte développeur, matières (structure), emploi du temps (structure).
 // V1.1 : ressources par matière (PDF uploadés, liens de redirection).
 // V1.2 : suspension de compte élève (compte développeur).
-// Pas encore de cours structuré au-delà des ressources, notes, devoirs, notifications, SOS, paiement, IA, fil vidéo.
+// V1.3 : CHECKLIST + voyant présence (last_seen) pour DEV.
 const SCHEMA_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS developers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -120,8 +120,7 @@ const TECHNIQUES = [
   "Maquette",
 ];
 
-// Migration douce : ajoute la colonne "suspended" si la table students existait déjà
-// sans elle (comptes créés avant cette version). Ne touche à rien si elle existe déjà.
+// Migration V1.2 : suspended
 async function ensureSuspendedColumn() {
   try {
     await client.execute("ALTER TABLE students ADD COLUMN suspended INTEGER NOT NULL DEFAULT 0");
@@ -132,12 +131,31 @@ async function ensureSuspendedColumn() {
   }
 }
 
+// Migration V1.3 : CHECKLIST - last_seen pour voyant vert/rouge
+async function ensurePresenceColumn() {
+  try {
+    await client.execute("ALTER TABLE students ADD COLUMN last_seen TEXT");
+  } catch (err) {
+    if (!/duplicate column/i.test(err.message || "")) {
+      console.log("students last_seen déjà existant");
+    }
+  }
+  try {
+    await client.execute("ALTER TABLE developers ADD COLUMN last_seen TEXT");
+  } catch (err) {
+    if (!/duplicate column/i.test(err.message || "")) {
+      console.log("developers last_seen déjà existant");
+    }
+  }
+}
+
 async function initDb() {
   for (const statement of SCHEMA_STATEMENTS) {
     await client.execute(statement);
   }
 
   await ensureSuspendedColumn();
+  await ensurePresenceColumn();
 
   const { rows } = await client.execute("SELECT COUNT(*) AS count FROM subjects");
   const subjectCount = rows[0].count;
