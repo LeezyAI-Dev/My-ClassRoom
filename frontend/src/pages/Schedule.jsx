@@ -21,15 +21,15 @@ const DAYS = [
   { value: 0, label: "Dimanche" },
 ];
 
-const DAY_START_MIN = 8 * 60; // 08:00
-const DAY_END_MIN = 17 * 60; // 17:00
-const HOUR_MARKS = Array.from({ length: 10 }, (_, i) => 8 + i); // 08..17
+const DAY_START_MIN = 7 * 60 + 30; // 07:30
+const DAY_END_MIN = 16 * 60 + 30; // 16:30
+const HOUR_MARKS = Array.from({ length: 10 }, (_, i) => 7 + i); // 07..16
 
 const EMPTY_FORM = {
   id: null,
   day_of_week: 1,
-  start_time: "08:00",
-  end_time: "09:00",
+  start_time: "07:30",
+  end_time: "08:30",
   subject_id: "",
   room: "",
   teacher: "",
@@ -134,8 +134,8 @@ function SlotForm({ form, setForm, subjects, onSubmit, onCancel, submitting, err
             type="time"
             value={form.start_time}
             onChange={(e) => setForm({ ...form, start_time: e.target.value })}
-            min="08:00"
-            max="17:00"
+            min="07:30"
+            max="16:30"
             className="w-full bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-sky-400 [color-scheme:dark]"
           />
         </div>
@@ -146,8 +146,8 @@ function SlotForm({ form, setForm, subjects, onSubmit, onCancel, submitting, err
             type="time"
             value={form.end_time}
             onChange={(e) => setForm({ ...form, end_time: e.target.value })}
-            min="08:00"
-            max="17:00"
+            min="07:30"
+            max="16:30"
             className="w-full bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-sky-400 [color-scheme:dark]"
           />
         </div>
@@ -481,7 +481,13 @@ export default function Schedule({ onBack }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [view, setView] = useState("day"); // "day" | "week"
-  const [dayIndex, setDayIndex] = useState(0);
+  // Ouvre la vue jour directement sur "aujourd'hui" (au lieu de toujours démarrer sur
+  // Lundi), pour que le compte à rebours soit visible dès l'arrivée sur l'écran.
+  const [dayIndex, setDayIndex] = useState(() => {
+    const todayValue = new Date().getDay(); // 0=Dimanche ... 6=Samedi
+    const idx = DAYS.findIndex((d) => d.value === todayValue);
+    return idx === -1 ? 0 : idx;
+  });
 
   const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -606,7 +612,7 @@ export default function Schedule({ onBack }) {
           >
             Emploi du t<span className="text-sky-400">em</span>ps
           </h1>
-          <p className="text-white/40 text-xs font-medium mt-0.5">08h00 — 17h00</p>
+          <p className="text-white/40 text-xs font-medium mt-0.5">07h30 — 16h30</p>
         </div>
       </header>
 

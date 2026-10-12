@@ -4,8 +4,8 @@ const { requireAuth } = require("../middleware/auth");
 
 const router = express.Router();
 
-const DAY_START = "08:00";
-const DAY_END = "17:00";
+const DAY_START = "07:30";
+const DAY_END = "16:30";
 
 function isValidTime(value) {
   return typeof value === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(value);

@@ -115,16 +115,7 @@ export default function WhoAreYou({ onSelectDeveloper, onSelectStudent }) {
 
         {/* Cases de rôle */}
         <div className="w-full max-w-sm space-y-4">
-          <RoleTile
-            icon={<StarIcon />}
-            label="Délégué(e)"
-            hint="Bientôt disponible"
-            onClick={() => {}}
-            gradient="from-[#6d28d9] to-[#1b0a35]"
-            iconBg="linear-gradient(135deg, #c4b5fd, #6d28d9)"
-            glow="shadow-[0_0_24px_-6px_rgba(147,51,234,0.4)]"
-          />
-          <RoleTile
+<RoleTile
             icon={<CapGlyph />}
             label="Élève"
             hint="Consulter mon espace de cours"
