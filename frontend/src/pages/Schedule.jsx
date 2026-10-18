@@ -481,7 +481,13 @@ export default function Schedule({ onBack }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [view, setView] = useState("day"); // "day" | "week"
-  const [dayIndex, setDayIndex] = useState(0);
+  // Ouvre la vue jour directement sur "aujourd'hui" (au lieu de toujours démarrer sur
+  // Lundi), pour que le compte à rebours soit visible dès l'arrivée sur l'écran.
+  const [dayIndex, setDayIndex] = useState(() => {
+    const todayValue = new Date().getDay(); // 0=Dimanche ... 6=Samedi
+    const idx = DAYS.findIndex((d) => d.value === todayValue);
+    return idx === -1 ? 0 : idx;
+  });
 
   const [formOpen, setFormOpen] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
