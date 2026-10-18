@@ -24,15 +24,14 @@ const DAYS = [
   { value: 0, label: "Dimanche" },
 ];
 
-const DAY_START_MIN = 8 * 60; // 08:00
-const DAY_END_MIN = 17 * 60; // 17:00
-const HOUR_MARKS = Array.from({ length: 10 }, (_, i) => 8 + i); // 08..17
+const DAY_START_MIN = 7 * 60 + 30; // 07:30
+const DAY_END_MIN = 16 * 60 + 30; // 16:30
 
 const EMPTY_FORM = {
   id: null,
   day_of_week: 1,
-  start_time: "08:00",
-  end_time: "09:00",
+  start_time: "07:30",
+  end_time: "08:30",
   subject_id: "",
   room: "",
   teacher: "",
@@ -137,8 +136,8 @@ function SlotForm({ form, setForm, subjects, onSubmit, onCancel, submitting, err
             type="time"
             value={form.start_time}
             onChange={(e) => setForm({ ...form, start_time: e.target.value })}
-            min="08:00"
-            max="17:00"
+            min="07:30"
+            max="16:30"
             className="field"
           />
         </div>
@@ -149,8 +148,8 @@ function SlotForm({ form, setForm, subjects, onSubmit, onCancel, submitting, err
             type="time"
             value={form.end_time}
             onChange={(e) => setForm({ ...form, end_time: e.target.value })}
-            min="08:00"
-            max="17:00"
+            min="07:30"
+            max="16:30"
             className="field"
           />
         </div>
@@ -187,109 +186,235 @@ function SlotForm({ form, setForm, subjects, onSubmit, onCancel, submitting, err
 }
 
 // ───────────────────────────────────────────
-// VUE SEMAINE — vrai tableau grille (jours en colonnes, créneaux de 30 min
-// en lignes), cellules colorées par matière, à la manière d'un emploi du
-// temps papier / CDI, adapté au thème sombre.
+// VUE SEMAINE — grille horaire 07h30 → 16h30.
+// Chaque cours est placé par pourcentage dans sa colonne (jamais en dehors de la grille,
+// donc plus de chevauchement avec l'en-tête), les cours simultanés se partagent la largeur,
+// la colonne des heures et l'en-tête restent visibles quand on fait défiler.
 // ───────────────────────────────────────────
-function WeekView({ slots, isDeveloper, onSlotClick, onAddClick }) {
-  const STEP = 30; // minutes
-  const rowCount = (DAY_END_MIN - DAY_START_MIN) / STEP;
-  const rows = Array.from({ length: rowCount }, (_, i) => DAY_START_MIN + i * STEP);
+const STEP = 30; // minutes par ligne
+const ROW_PX = 36; // hauteur d'une demi-heure
+const TOTAL_MIN = DAY_END_MIN - DAY_START_MIN;
+const BODY_PX = (TOTAL_MIN / STEP) * ROW_PX;
+const TIME_COL_PX = 52;
+const DAY_COL_MIN_PX = 112;
 
-  const slotsByDay = (dayValue) => slots.filter((s) => s.day_of_week === dayValue);
-  const rowStartFor = (minutes) => Math.round((minutes - DAY_START_MIN) / STEP) + 2; // +2 : ligne 1 = en-tête
+const yFor = (minutes) => ((minutes - DAY_START_MIN) / TOTAL_MIN) * BODY_PX;
+const clampMin = (m) => Math.max(DAY_START_MIN, Math.min(m, DAY_END_MIN));
+
+function formatHourLabel(minutes) {
+  const h = String(Math.floor(minutes / 60)).padStart(2, "0");
+  const m = minutes % 60;
+  return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, "0")}`;
+}
+
+// Place les cours d'une journée : bornes ramenées dans la grille, et "voies" côte à côte
+// pour les cours qui se chevauchent.
+function layoutDay(daySlots) {
+  const items = daySlots.map((slot) => {
+    let s = clampMin(toMinutes(slot.start_time));
+    let e = clampMin(toMinutes(slot.end_time));
+    if (e - s < 15) {
+      e = Math.min(DAY_END_MIN, s + STEP);
+      if (e - s < 15) s = e - STEP;
+    }
+    return { slot, s, e, lane: 0, lanes: 1 };
+  });
+  items.sort((a, b) => a.s - b.s || a.e - b.e);
+
+  let cluster = [];
+  let clusterEnd = -1;
+  let laneEnds = [];
+  const flush = () => {
+    const lanes = cluster.reduce((m, i) => Math.max(m, i.lane + 1), 1);
+    cluster.forEach((i) => {
+      i.lanes = lanes;
+    });
+    cluster = [];
+    laneEnds = [];
+  };
+
+  for (const it of items) {
+    if (it.s >= clusterEnd) {
+      flush();
+      clusterEnd = -1;
+    }
+    let lane = laneEnds.findIndex((end) => end <= it.s);
+    if (lane === -1) {
+      lane = laneEnds.length;
+      laneEnds.push(it.e);
+    } else {
+      laneEnds[lane] = it.e;
+    }
+    it.lane = lane;
+    cluster.push(it);
+    clusterEnd = Math.max(clusterEnd, it.e);
+  }
+  flush();
+  return items;
+}
+
+function WeekView({ slots, isDeveloper, onSlotClick, onAddClick }) {
+  // Horloge à la minute : sert au repère "maintenant" dans la colonne du jour.
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+  const todayValue = now.getDay();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const showNowLine = nowMin >= DAY_START_MIN && nowMin <= DAY_END_MIN;
+
+  // Lundi → Samedi ; le dimanche n'apparaît que s'il contient des cours.
+  const days = DAYS.filter((d) => d.value !== 0 || slots.some((s) => s.day_of_week === 0));
+
+  const lines = [];
+  for (let m = DAY_START_MIN; m <= DAY_END_MIN; m += STEP) lines.push(m);
 
   return (
-    <div className="bg-surface border border-white/10 rounded-2xl overflow-hidden overflow-x-auto">
-      <div
-        className="grid"
-        style={{
-          gridTemplateColumns: `68px repeat(${DAYS.length}, 1fr)`,
-          gridTemplateRows: `44px repeat(${rowCount}, 32px)`,
-          minWidth: `${68 + DAYS.length * 110}px`,
-        }}
-      >
-        {/* Coin haut-gauche */}
-        <div className="bg-gradient-to-br from-[#7c3aed] to-[#2a0d5c]" style={{ gridColumn: 1, gridRow: 1 }} />
+    <div>
+      <p className="mb-2 px-1 text-xs text-white/65 sm:hidden">Fais glisser le tableau pour voir tous les jours.</p>
 
-        {/* En-têtes des jours */}
-        {DAYS.map((day, i) => (
-          <div
-            key={day.value}
-            className="bg-gradient-to-br from-[#7c3aed] to-[#2a0d5c] border-l border-white/10 flex flex-col items-center justify-center"
-            style={{ gridColumn: i + 2, gridRow: 1 }}
-          >
-            <p className="text-white text-[11px] font-extrabold uppercase tracking-wide">
-              {day.label}
-            </p>
-            {isDeveloper && (
-              <button
-                onClick={() => onAddClick(day.value)}
-                className="text-[9px] text-violet-300 hover:text-violet-300 leading-none mt-0.5"
+      <div className="overflow-hidden rounded-3xl border border-white/10 bg-[#120d1d]/80">
+        <div className="overflow-x-auto">
+          <div style={{ minWidth: TIME_COL_PX + days.length * DAY_COL_MIN_PX }}>
+            {/* En-tête : jours */}
+            <div className="flex border-b border-white/10 bg-white/[0.04]">
+              <div className="sticky left-0 z-30 shrink-0 bg-[#1a1328]" style={{ width: TIME_COL_PX }} aria-hidden="true" />
+              {days.map((day) => {
+                const isToday = day.value === todayValue;
+                const label = (
+                  <>
+                    <span
+                      className={`rounded-full px-3 py-1 text-[11px] font-extrabold uppercase tracking-wide ${
+                        isToday ? "bg-brand-gradient text-white shadow-glow-sm" : "text-white/80"
+                      }`}
+                    >
+                      {day.label}
+                    </span>
+                    {isDeveloper && <span className="mt-1 text-[11px] font-semibold text-violet-300">+ cours</span>}
+                  </>
+                );
+                const cls =
+                  "flex min-h-[56px] flex-1 flex-col items-center justify-center border-l border-white/[0.06] py-2";
+                return isDeveloper ? (
+                  <button
+                    key={day.value}
+                    type="button"
+                    onClick={() => onAddClick(day.value)}
+                    aria-label={`Ajouter un cours le ${day.label}`}
+                    className={`${cls} transition active:bg-white/10`}
+                    style={{ minWidth: DAY_COL_MIN_PX }}
+                  >
+                    {label}
+                  </button>
+                ) : (
+                  <div key={day.value} className={cls} style={{ minWidth: DAY_COL_MIN_PX }}>
+                    {label}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Corps : heures + colonnes des jours */}
+            <div className="relative flex" style={{ height: BODY_PX }}>
+              {/* Lignes horaires (trait plein à chaque heure, léger à la demi-heure) */}
+              <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+                {lines.map((m) => (
+                  <div
+                    key={m}
+                    className={`absolute inset-x-0 border-t ${m % 60 === 0 ? "border-white/[0.12]" : "border-white/[0.05]"}`}
+                    style={{ top: yFor(m) }}
+                  />
+                ))}
+              </div>
+
+              {/* Colonne des heures */}
+              <div
+                className="sticky left-0 z-20 shrink-0 border-r border-white/10 bg-[#1a1328]"
+                style={{ width: TIME_COL_PX }}
+                aria-hidden="true"
               >
-                + cours
-              </button>
-            )}
+                {lines
+                  .filter((m) => m % 60 === 0 || m === DAY_START_MIN || m === DAY_END_MIN)
+                  .map((m) => (
+                    <span
+                      key={m}
+                      className="absolute right-2 text-[11px] font-semibold text-white/65"
+                      style={{
+                        top: yFor(m),
+                        transform: m === DAY_START_MIN ? "translateY(4px)" : m === DAY_END_MIN ? "translateY(-110%)" : "translateY(-50%)",
+                      }}
+                    >
+                      {formatHourLabel(m)}
+                    </span>
+                  ))}
+              </div>
+
+              {/* Colonnes des jours */}
+              {days.map((day) => {
+                const isToday = day.value === todayValue;
+                const items = layoutDay(slots.filter((s) => s.day_of_week === day.value));
+
+                return (
+                  <div
+                    key={day.value}
+                    className={`relative flex-1 border-l border-white/[0.06] ${isToday ? "bg-violet-500/[0.07]" : ""}`}
+                    style={{ minWidth: DAY_COL_MIN_PX }}
+                  >
+                    {items.map(({ slot, s, e, lane, lanes }) => {
+                      const color = colorForSubject(slot.subject_id);
+                      const top = yFor(s);
+                      const height = yFor(e) - top;
+                      const widthPct = 100 / lanes;
+                      const name = slot.subject_name || "Cours";
+                      const clickable = isDeveloper;
+
+                      return (
+                        <button
+                          key={slot.id}
+                          type="button"
+                          onClick={() => clickable && onSlotClick(slot)}
+                          disabled={!clickable}
+                          aria-label={`${name}, de ${slot.start_time} à ${slot.end_time}${slot.room ? `, salle ${slot.room}` : ""}`}
+                          className={`absolute z-10 flex flex-col overflow-hidden rounded-xl border-l-[3px] px-2 py-1.5 text-left ${color.border} ${color.bg} ${
+                            clickable ? "cursor-pointer transition active:brightness-125" : "cursor-default"
+                          }`}
+                          style={{
+                            top: top + 2,
+                            height: height - 4,
+                            left: `calc(${lane * widthPct}% + 3px)`,
+                            width: `calc(${widthPct}% - 6px)`,
+                          }}
+                        >
+                          <span className={`line-clamp-2 text-[12px] font-bold leading-tight ${color.text}`}>{name}</span>
+                          {height >= 64 && slot.room && (
+                            <span className="mt-0.5 truncate text-[11px] leading-tight text-white/70">Salle {slot.room}</span>
+                          )}
+                          {height >= 100 && (
+                            <span className="mt-auto text-[11px] font-medium leading-tight text-white/60">
+                              {slot.start_time} – {slot.end_time}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+
+                    {/* Repère de l'heure actuelle */}
+                    {isToday && showNowLine && (
+                      <div
+                        className="pointer-events-none absolute inset-x-0 z-20 h-0.5 bg-fuchsia-400"
+                        style={{ top: yFor(nowMin) }}
+                        aria-hidden="true"
+                      >
+                        <span className="absolute -left-1 -top-[3px] h-2 w-2 rounded-full bg-fuchsia-400" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        ))}
-
-        {/* Colonne des heures */}
-        {rows.map((min, i) => (
-          <div
-            key={min}
-            className="bg-white/[0.03] border-b border-r border-white/10 flex items-start justify-end pr-2 pt-0.5"
-            style={{ gridColumn: 1, gridRow: i + 2 }}
-          >
-            {min % 60 === 0 && (
-              <span className="text-[10px] font-bold text-white/55">
-                {String(Math.floor(min / 60)).padStart(2, "0")}h
-              </span>
-            )}
-          </div>
-        ))}
-
-        {/* Quadrillage de fond (une cellule par jour x créneau) */}
-        {DAYS.map((day, di) =>
-          rows.map((min, ri) => (
-            <div
-              key={`${day.value}-${min}`}
-              className="border-b border-r border-white/5 last:border-r-0"
-              style={{ gridColumn: di + 2, gridRow: ri + 2 }}
-            />
-          ))
-        )}
-
-        {/* Cours, positionnés et étirés sur leur durée réelle */}
-        {DAYS.map((day, di) =>
-          slotsByDay(day.value).map((slot) => {
-            const start = toMinutes(slot.start_time);
-            const end = toMinutes(slot.end_time);
-            const rowStart = rowStartFor(start);
-            const rowSpan = Math.max(1, Math.round((end - start) / STEP));
-            const color = colorForSubject(slot.subject_id);
-
-            return (
-              <button
-                key={slot.id}
-                onClick={() => isDeveloper && onSlotClick(slot)}
-                disabled={!isDeveloper}
-                className={`m-[2px] rounded-lg ${color.bg} border-l-[3px] ${color.border} px-1.5 py-1 overflow-hidden text-left flex flex-col justify-center ${
-                  isDeveloper ? "cursor-pointer hover:brightness-125" : "cursor-default"
-                }`}
-                style={{ gridColumn: di + 2, gridRow: `${rowStart} / span ${rowSpan}` }}
-              >
-                <p className={`text-[10px] font-bold leading-tight truncate ${color.text}`}>
-                  {slot.subject_name || "—"}
-                </p>
-                {rowSpan > 1 && (
-                  <p className="text-[9px] text-white/55 leading-tight truncate">
-                    {slot.room ? `Salle ${slot.room}` : `${slot.start_time}-${slot.end_time}`}
-                  </p>
-                )}
-              </button>
-            );
-          })
-        )}
+        </div>
       </div>
     </div>
   );
@@ -585,7 +710,7 @@ export default function Schedule({ onBack }) {
       <AuroraBackground />
       <PageHeader
         title="Emploi du temps"
-        subtitle="08h00 — 17h00"
+        subtitle="07h30 — 16h30"
         icon={<CalendarIcon size={24} />}
         tone="blue"
       />
