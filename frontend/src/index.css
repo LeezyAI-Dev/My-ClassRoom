@@ -2,6 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+/* La police (Plus Jakarta Sans) vient de tailwind.config.js (fontFamily.sans). */
+@layer base {
+  html {
+    color-scheme: dark;
+    background-color: #08050e;
+  }
+  body {
+    background-color: #08050e;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer components {
+  /* Carte sombre du nouveau design : surface pleine (pas de flou, plus léger sur les vieux téléphones). */
+  .mc-card {
+    @apply rounded-[28px] border border-white/10 bg-night-card/90;
+  }
+  /* Anneau de focus visible pour la navigation au clavier. */
+  .mc-focus {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-brand-lavender focus-visible:ring-offset-2 focus-visible:ring-offset-night;
+  }
 }

@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { fetchSubjects } from "../api";
 import SubjectResourcePanel from "../components/SubjectResourcePanel";
+import AuroraBackground from "../components/ui/AuroraBackground";
+import GradientButton from "../components/ui/GradientButton";
 
 function BackArrowIcon() {
   return (
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
       <path
         d="M11 5 L4 12 L11 19 M4 12 H16 A5 5 0 0 1 21 17 V18"
-        stroke="#ffffff"
+        stroke="currentColor"
         strokeWidth="2.4"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -26,8 +28,8 @@ function ChevronRightIcon() {
 }
 
 const GROUP_STYLE = {
-  generale: { gradient: "from-[#1660e0] to-[#05122c]", iconBg: "linear-gradient(135deg, #4da3ff, #1454d8)" },
-  technique: { gradient: "from-[#f2960c] to-[#3a1503]", iconBg: "linear-gradient(135deg, #fdba74, #c2410c)" },
+  generale: { gradient: "", iconBg: "linear-gradient(135deg, #a78bfa, #6d28d9)" },
+  technique: { gradient: "", iconBg: "linear-gradient(135deg, #f0abfc, #a21caf)" },
 };
 
 function SubjectCard({ subject, group, onSelect }) {
@@ -37,7 +39,7 @@ function SubjectCard({ subject, group, onSelect }) {
   return (
     <button
       onClick={() => onSelect(subject)}
-      className={`w-full flex items-center gap-4 rounded-2xl px-4 py-3.5 text-left border border-white/10 active:scale-[0.98] transition-transform bg-gradient-to-br ${style.gradient}`}
+      className={`w-full flex items-center gap-4 rounded-2xl px-4 py-3.5 text-left border border-white/10 active:scale-[0.98] transition-transform bg-white/[0.05] backdrop-blur-xl hover:bg-white/[0.08]`}
     >
       <span
         className="w-11 h-11 rounded-xl flex items-center justify-center font-bold text-base text-white shrink-0 shadow-md"
@@ -68,16 +70,11 @@ export default function Subjects({ onBack }) {
   const subjects = data[tab] || [];
 
   return (
-    <div className="min-h-screen bg-[#060b1c]">
+    <div className="relative isolate min-h-screen bg-black">
+      <AuroraBackground />
       {/* Header */}
       <header className="px-6 pt-9 pb-6 flex items-center gap-4">
-        <button
-          onClick={onBack}
-          aria-label="Retour"
-          className="w-10 h-10 rounded-full border-2 border-white/30 flex items-center justify-center active:opacity-70 transition shrink-0"
-        >
-          <BackArrowIcon />
-        </button>
+        <GradientButton tone="blue" size="sm" icon={<BackArrowIcon />} label="Retour" onClick={onBack} />
         <h1
           className="text-white font-extrabold text-2xl"
           style={{ fontFamily: "'Baloo 2', sans-serif" }}
@@ -88,12 +85,12 @@ export default function Subjects({ onBack }) {
 
       <main className="max-w-md mx-auto px-6 pb-10">
         {/* Toggle Générales / Techniques */}
-        <div className="bg-white/5 border border-white/10 rounded-full p-1 flex mb-6">
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-full p-1 flex mb-6">
           <button
             onClick={() => setTab("generale")}
             className={`flex-1 py-2.5 rounded-full text-sm font-semibold transition ${
               tab === "generale"
-                ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-[0_0_16px_-2px_rgba(56,189,248,0.6)]"
+                ? "bg-white text-black shadow-[0_0_16px_-2px_rgba(255,255,255,0.35)]"
                 : "text-white/50"
             }`}
           >
@@ -103,7 +100,7 @@ export default function Subjects({ onBack }) {
             onClick={() => setTab("technique")}
             className={`flex-1 py-2.5 rounded-full text-sm font-semibold transition ${
               tab === "technique"
-                ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-[0_0_16px_-2px_rgba(245,158,11,0.6)]"
+                ? "bg-white text-black shadow-[0_0_16px_-2px_rgba(255,255,255,0.35)]"
                 : "text-white/50"
             }`}
           >

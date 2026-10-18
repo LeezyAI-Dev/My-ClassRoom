@@ -8,6 +8,8 @@ const client = createClient({
 // V1 : compte développeur, matières (structure), emploi du temps (structure).
 // V1.1 : ressources par matière (PDF uploadés, liens de redirection).
 // V1.2 : suspension de compte élève (compte développeur).
+// V1.3 : code PIN élève (pin_hash, pin_failed_attempts, pin_locked_until).
+// V1.4 : registre de notes (table grade_entries, privé à chaque utilisateur, photo de copie en base64).
 // Pas encore de cours structuré au-delà des ressources, notes, devoirs, notifications, SOS, paiement, IA, fil vidéo.
 const SCHEMA_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS developers (
@@ -99,6 +101,19 @@ const SCHEMA_STATEMENTS = [
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`,
   `CREATE INDEX IF NOT EXISTS idx_eyes_comments_post_id ON eyes_comments(post_id)`,
+  `CREATE TABLE IF NOT EXISTS grade_entries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    owner_type TEXT NOT NULL CHECK (owner_type IN ('developer', 'student')),
+    owner_id INTEGER NOT NULL,
+    subject_id INTEGER NOT NULL REFERENCES subjects(id) ON DELETE CASCADE,
+    score REAL NOT NULL,
+    scale INTEGER NOT NULL CHECK (scale IN (10, 20)),
+    photo_data TEXT,
+    photo_mime TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_grade_entries_owner_subject ON grade_entries(owner_type, owner_id, subject_id)`,
 ];
 
 const GENERALES = [
@@ -132,12 +147,32 @@ async function ensureSuspendedColumn() {
   }
 }
 
+// Migration douce : ajoute les colonnes du code PIN si elles n'existent pas encore.
+// Ne touche à aucun compte existant (les élèves actuels auront simplement pin_hash = NULL).
+async function ensureStudentPinColumns() {
+  const statements = [
+    "ALTER TABLE students ADD COLUMN pin_hash TEXT",
+    "ALTER TABLE students ADD COLUMN pin_failed_attempts INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE students ADD COLUMN pin_locked_until INTEGER",
+  ];
+  for (const sql of statements) {
+    try {
+      await client.execute(sql);
+    } catch (err) {
+      if (!/duplicate column/i.test(err.message || "")) {
+        throw err;
+      }
+    }
+  }
+}
+
 async function initDb() {
   for (const statement of SCHEMA_STATEMENTS) {
     await client.execute(statement);
   }
 
   await ensureSuspendedColumn();
+  await ensureStudentPinColumns();
 
   const { rows } = await client.execute("SELECT COUNT(*) AS count FROM subjects");
   const subjectCount = rows[0].count;

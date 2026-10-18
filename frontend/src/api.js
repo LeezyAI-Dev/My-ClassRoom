@@ -3,7 +3,10 @@ const BASE_URL = import.meta.env.VITE_API_URL || "/api";
 async function handleResponse(res) {
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(data.error || "Une erreur est survenue.");
+    const err = new Error(data.error || "Une erreur est survenue.");
+    err.status = res.status; // ex: 401, 429
+    err.code = data.code; // ex: "WRONG_PIN", "LOCKED", "DEVICE_INVALID"
+    throw err;
   }
   return data;
 }
@@ -40,6 +43,28 @@ export async function loginStudent({ username, password }) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
+  });
+  return handleResponse(res);
+}
+
+// --- Code PIN élève ---
+
+// Définit le code PIN (session élève requise). Renvoie { deviceToken }.
+export async function setStudentPin(token, pin) {
+  const res = await fetch(`${BASE_URL}/auth/student/pin/set`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ pin }),
+  });
+  return handleResponse(res);
+}
+
+// Connexion par PIN : on envoie le jeton d'appareil. Renvoie { token, student }.
+export async function loginStudentWithPin(deviceToken, pin) {
+  const res = await fetch(`${BASE_URL}/auth/student/pin/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${deviceToken}` },
+    body: JSON.stringify({ pin }),
   });
   return handleResponse(res);
 }
@@ -153,6 +178,14 @@ export async function fetchStudents(token) {
   return handleResponse(res);
 }
 
+export async function deleteStudent(token, studentId) {
+  const res = await fetch(`${BASE_URL}/students/${studentId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return handleResponse(res);
+}
+
 export async function suspendStudent(token, studentId) {
   const res = await fetch(`${BASE_URL}/students/${studentId}/suspend`, {
     method: "PATCH",
@@ -229,4 +262,65 @@ export async function deleteEyesPost(token, postId) {
     headers: { Authorization: `Bearer ${token}` },
   });
   return handleResponse(res);
+}
+
+
+// --- Registre de notes (privé : chaque utilisateur ne voit que les siennes) ---
+
+export async function fetchGradeCounts(token) {
+  const res = await fetch(`${BASE_URL}/grades/counts`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return handleResponse(res);
+}
+
+export async function fetchSubjectGrades(token, subjectId) {
+  const res = await fetch(`${BASE_URL}/grades/subject/${subjectId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return handleResponse(res);
+}
+
+function buildGradeFormData({ score, scale, file, removePhoto }) {
+  const formData = new FormData();
+  formData.append("score", String(score));
+  formData.append("scale", String(scale));
+  if (file) formData.append("file", file);
+  if (removePhoto) formData.append("removePhoto", "1");
+  return formData;
+}
+
+export async function createGrade(token, subjectId, data) {
+  const res = await fetch(`${BASE_URL}/grades/subject/${subjectId}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` }, // pas de Content-Type : le navigateur le fixe (multipart + boundary)
+    body: buildGradeFormData(data),
+  });
+  return handleResponse(res);
+}
+
+export async function updateGrade(token, gradeId, data) {
+  const res = await fetch(`${BASE_URL}/grades/${gradeId}`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${token}` },
+    body: buildGradeFormData(data),
+  });
+  return handleResponse(res);
+}
+
+export async function deleteGrade(token, gradeId) {
+  const res = await fetch(`${BASE_URL}/grades/${gradeId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return handleResponse(res);
+}
+
+// La photo est protégée par le jeton : on la récupère en blob (une balise <img> ne peut pas envoyer d'en-tête).
+export async function fetchGradePhotoBlob(token, gradeId) {
+  const res = await fetch(`${BASE_URL}/grades/${gradeId}/photo`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Photo introuvable.");
+  return res.blob();
 }

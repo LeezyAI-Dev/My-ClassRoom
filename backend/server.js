@@ -5,12 +5,14 @@ const cors = require("cors");
 const { initDb } = require("./db");
 const authRoutes = require("./routes/auth");
 const studentAuthRoutes = require("./routes/studentAuth");
+const studentsRoutes = require("./routes/students");
 const subjectsRoutes = require("./routes/subjects");
 const scheduleRoutes = require("./routes/schedule");
 const { router: resourcesRoutes, UPLOAD_DIR } = require("./routes/resources");
 const resourceActionsRoutes = require("./routes/resourceActions");
 const { router: bannerRoutes } = require("./routes/banner");
 const { router: eyesRoutes } = require("./routes/eyes");
+const gradesRoutes = require("./routes/grades");
 const { requireAuth } = require("./middleware/auth");
 
 const app = express();
@@ -19,12 +21,14 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/auth/student", studentAuthRoutes);
+app.use("/api/students", studentsRoutes); // liste des élèves (développeur)
 app.use("/api/subjects", subjectsRoutes);
 app.use("/api/subjects", resourcesRoutes); // /api/subjects/:id/resources[...]
 app.use("/api/resources", resourceActionsRoutes); // /api/resources/:id (suppression)
 app.use("/api/schedule", scheduleRoutes);
 app.use("/api/banner", bannerRoutes);
 app.use("/api/eyes", eyesRoutes);
+app.use("/api/grades", gradesRoutes); // registre de notes (privé à chaque utilisateur)
 
 // Fichiers PDF uploadés, servis tels quels (nom aléatoire, lecture seule).
 app.use("/uploads", express.static(UPLOAD_DIR));

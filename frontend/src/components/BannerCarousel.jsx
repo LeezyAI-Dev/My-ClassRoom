@@ -1,22 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { fetchBannerImages } from "../api";
-import fixedSlideImg from "../assets/banner-fixed-slide.png";
 
 const SLIDE_INTERVAL = 4000; // temps d'affichage de chaque slide (ms)
 const POLL_INTERVAL = 8000; // fréquence de vérification des nouvelles images du dev (ms)
-
-// Premier slide, figé : image de la maquette, ne change jamais.
-// Ce n'est pas une image réseau : elle est intégrée au code, donc toujours
-// disponible même hors ligne dans l'application Android.
-function FixedSlide() {
-  return (
-    <img
-      src={fixedSlideImg}
-      alt="Bienvenue sur votre espace élève"
-      className="w-full h-full object-cover"
-    />
-  );
-}
 
 export default function BannerCarousel() {
   const [devImages, setDevImages] = useState([]);
@@ -44,8 +30,8 @@ export default function BannerCarousel() {
     return () => clearInterval(poll);
   }, []);
 
-  // Slide figé toujours en premier, puis les images postées par le développeur.
-  const slides = [{ type: "fixed", id: "fixed" }, ...devImages.map((img) => ({ type: "image", ...img }))];
+  // Uniquement les images postées par le développeur (plus de slide figé).
+  const slides = devImages;
 
   useEffect(() => {
     if (slides.length <= 1) return undefined;
@@ -60,8 +46,11 @@ export default function BannerCarousel() {
     if (index >= slides.length) setIndex(0);
   }, [slides.length, index]);
 
+  // Aucune image : la bannière disparaît complètement (pas de cadre vide).
+  if (slides.length === 0) return null;
+
   return (
-    <div className="relative w-full h-full overflow-hidden bg-[#0b1230]">
+    <div className="relative w-full h-[190px] rounded-[28px] border border-white/10 overflow-hidden bg-night-card">
       {slides.map((slide, i) => (
         <div
           key={slide.id}
@@ -69,19 +58,15 @@ export default function BannerCarousel() {
             i === index ? "opacity-100" : "opacity-0"
           }`}
         >
-          {slide.type === "fixed" ? (
-            <FixedSlide />
-          ) : (
-            <img
-              src={
-                slide.url.startsWith("http")
-                  ? slide.url
-                  : `${import.meta.env.VITE_API_URL?.replace("/api", "") || ""}${slide.url}`
-              }
-              alt=""
-              className="w-full h-full object-cover"
-            />
-          )}
+          <img
+            src={
+              slide.url.startsWith("http")
+                ? slide.url
+                : `${import.meta.env.VITE_API_URL?.replace("/api", "") || ""}${slide.url}`
+            }
+            alt=""
+            className="w-full h-full object-cover"
+          />
         </div>
       ))}
 
@@ -93,7 +78,7 @@ export default function BannerCarousel() {
               onClick={() => setIndex(i)}
               aria-label={`Aller au slide ${i + 1}`}
               className={`h-1.5 rounded-full transition-all ${
-                i === index ? "w-5 bg-sky-400" : "w-1.5 bg-white/40"
+                i === index ? "w-5 bg-brand-lavender" : "w-1.5 bg-white/40"
               }`}
             />
           ))}

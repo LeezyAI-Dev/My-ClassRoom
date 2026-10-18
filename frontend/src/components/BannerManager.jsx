@@ -57,7 +57,7 @@ export default function BannerManager() {
   };
 
   return (
-    <div className="bg-white/[0.04] border border-white/10 rounded-[24px] p-5 mb-8 backdrop-blur">
+    <div className="mc-card p-5">
       <h3 className="text-sm font-semibold text-white">Bannière d'accueil</h3>
       <p className="text-xs text-white/50 mt-1 mb-4">
         Les images ci-dessous défilent automatiquement en haut de l'écran d'accueil, visibles par
@@ -83,7 +83,7 @@ export default function BannerManager() {
               />
               <button
                 onClick={() => handleDelete(img.id)}
-                className="absolute top-1 right-1 bg-black/60 text-white text-[10px] rounded px-1.5 py-0.5 opacity-0 group-hover:opacity-100 transition"
+                className="absolute top-1 right-1 bg-black/60 text-white text-[10px] rounded px-1.5 py-0.5 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition"
               >
                 Suppr.
               </button>
@@ -108,7 +108,7 @@ export default function BannerManager() {
         <button
           type="submit"
           disabled={submitting}
-          className="px-4 py-1.5 rounded-md bg-sky-500 text-white text-xs font-medium hover:bg-sky-400 disabled:opacity-60 shrink-0"
+          className="px-4 py-1.5 rounded-md bg-gradient-to-r from-brand-violet to-brand-fuchsia text-white text-xs font-semibold active:brightness-110 disabled:opacity-60 shrink-0"
         >
           {submitting ? "Envoi..." : "Ajouter une image"}
         </button>
