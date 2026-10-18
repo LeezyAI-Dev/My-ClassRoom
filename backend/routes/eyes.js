@@ -5,6 +5,7 @@ const crypto = require("crypto");
 const multer = require("multer");
 const { client } = require("../db");
 const { requireAnyAuth } = require("../middleware/auth");
+const { uploadLocalFile, deleteStored, isCloudStored } = require("../cloudinary");
 
 const router = express.Router();
 
@@ -131,12 +132,19 @@ router.post("/", requireAnyAuth, (req, res) => {
       }
 
       const caption = (req.body.caption || "").trim().slice(0, 500);
-      const publicUrl = `/uploads/eyes/${req.file.filename}`;
+      // Fichier temporaire -> Cloudinary (adresse permanente), puis on libère le disque.
+      const stored = await uploadLocalFile(req.file.path, {
+        folder: "myclassroom/eyes",
+        mimeType: req.file.mimetype,
+        originalName: req.file.originalname,
+      });
+      fs.unlink(req.file.path, () => {});
+      const publicUrl = stored.url;
 
       const insertResult = await client.execute({
         sql: `INSERT INTO eyes_posts (author_type, author_id, author_username, media_type, media_url, file_path, caption)
               VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        args: [req.actor.type, req.actor.id, req.actor.username, mediaType, publicUrl, req.file.filename, caption],
+        args: [req.actor.type, req.actor.id, req.actor.username, mediaType, publicUrl, stored.storedPath, caption],
       });
 
       const newId = Number(insertResult.lastInsertRowid);
@@ -147,7 +155,7 @@ router.post("/", requireAnyAuth, (req, res) => {
     } catch (err) {
       cleanup();
       console.error(err);
-      res.status(500).json({ error: "Erreur serveur lors de la publication." });
+      res.status(500).json({ error: err.message || "Erreur serveur lors de la publication." });
     }
   });
 });
@@ -289,7 +297,9 @@ router.delete("/:id", requireAnyAuth, async (req, res) => {
     await client.execute({ sql: "DELETE FROM eyes_comments WHERE post_id = ?", args: [id] });
     await client.execute({ sql: "DELETE FROM eyes_posts WHERE id = ?", args: [id] });
 
-    if (post.file_path) {
+    if (isCloudStored(post.file_path)) {
+      await deleteStored(post.file_path);
+    } else if (post.file_path) {
       fs.unlink(path.join(EYES_DIR, post.file_path), () => {});
     }
 

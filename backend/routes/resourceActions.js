@@ -4,6 +4,7 @@ const fs = require("fs");
 const { client } = require("../db");
 const { requireAuth } = require("../middleware/auth");
 const { UPLOAD_DIR } = require("./resources");
+const { deleteStored, isCloudStored } = require("../cloudinary");
 
 const router = express.Router();
 
@@ -29,7 +30,9 @@ router.delete("/:id", requireAuth, async (req, res) => {
       args: [id],
     });
 
-    if (resource.type === "pdf" && resource.file_path) {
+    if (resource.type === "pdf" && isCloudStored(resource.file_path)) {
+      await deleteStored(resource.file_path);
+    } else if (resource.type === "pdf" && resource.file_path) {
       fs.unlink(path.join(UPLOAD_DIR, resource.file_path), () => {});
     }
 

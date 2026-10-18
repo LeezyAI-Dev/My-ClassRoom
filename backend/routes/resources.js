@@ -5,6 +5,7 @@ const crypto = require("crypto");
 const multer = require("multer");
 const { client } = require("../db");
 const { requireAuth } = require("../middleware/auth");
+const { uploadLocalFile } = require("../cloudinary");
 
 const router = express.Router();
 
@@ -108,12 +109,19 @@ router.post("/:subjectId/resources/pdf", requireAuth, (req, res) => {
         return res.status(400).json({ error: "Le titre est requis." });
       }
 
-      const publicUrl = `/uploads/${req.file.filename}`;
+      // Fichier temporaire -> Cloudinary (adresse permanente), puis on libère le disque.
+      const stored = await uploadLocalFile(req.file.path, {
+        folder: "myclassroom/pdf",
+        mimeType: req.file.mimetype,
+        originalName: req.file.originalname,
+      });
+      fs.unlink(req.file.path, () => {});
+      const publicUrl = stored.url;
 
       const insertResult = await client.execute({
         sql: `INSERT INTO subject_resources (subject_id, type, title, url, file_path, original_filename)
               VALUES (?, 'pdf', ?, ?, ?, ?)`,
-        args: [subjectId, title, publicUrl, req.file.filename, req.file.originalname],
+        args: [subjectId, title, publicUrl, stored.storedPath, req.file.originalname],
       });
 
       const newId = Number(insertResult.lastInsertRowid);
@@ -126,7 +134,7 @@ router.post("/:subjectId/resources/pdf", requireAuth, (req, res) => {
     } catch (err) {
       cleanup();
       console.error(err);
-      res.status(500).json({ error: "Erreur serveur lors de l'ajout du PDF." });
+      res.status(500).json({ error: err.message || "Erreur serveur lors de l'ajout du PDF." });
     }
   });
 });

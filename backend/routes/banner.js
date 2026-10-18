@@ -5,6 +5,7 @@ const crypto = require("crypto");
 const multer = require("multer");
 const { client } = require("../db");
 const { requireAuth } = require("../middleware/auth");
+const { uploadLocalFile, deleteStored, isCloudStored } = require("../cloudinary");
 
 const router = express.Router();
 
@@ -72,7 +73,15 @@ router.post("/", requireAuth, (req, res) => {
     }
 
     try {
-      const publicUrl = `/uploads/banners/${req.file.filename}`;
+      // Le fichier reçu n'est que temporaire (disque de Render éphémère) : on l'envoie
+      // sur Cloudinary, puis on garde l'adresse https permanente.
+      const stored = await uploadLocalFile(req.file.path, {
+        folder: "myclassroom/banners",
+        mimeType: req.file.mimetype,
+        originalName: req.file.originalname,
+      });
+      fs.unlink(req.file.path, () => {});
+      const publicUrl = stored.url;
 
       const maxPositionResult = await client.execute(
         "SELECT MAX(position) AS maxPos FROM banner_images"
@@ -83,7 +92,7 @@ router.post("/", requireAuth, (req, res) => {
       const insertResult = await client.execute({
         sql: `INSERT INTO banner_images (url, file_path, original_filename, position)
               VALUES (?, ?, ?, ?)`,
-        args: [publicUrl, req.file.filename, req.file.originalname, nextPosition],
+        args: [publicUrl, stored.storedPath, req.file.originalname, nextPosition],
       });
 
       const newId = Number(insertResult.lastInsertRowid);
@@ -96,7 +105,7 @@ router.post("/", requireAuth, (req, res) => {
     } catch (err) {
       if (req.file) fs.unlink(req.file.path, () => {});
       console.error(err);
-      res.status(500).json({ error: "Erreur serveur lors de l'ajout de l'image." });
+      res.status(500).json({ error: err.message || "Erreur serveur lors de l'ajout de l'image." });
     }
   });
 });
@@ -122,7 +131,9 @@ router.delete("/:id", requireAuth, async (req, res) => {
       args: [id],
     });
 
-    if (image.file_path) {
+    if (isCloudStored(image.file_path)) {
+      await deleteStored(image.file_path);
+    } else if (image.file_path) {
       fs.unlink(path.join(BANNER_DIR, image.file_path), () => {});
     }
 
