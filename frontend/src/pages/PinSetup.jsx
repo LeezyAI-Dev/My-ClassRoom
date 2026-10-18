@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import PinPad, { PinDots } from "../components/PinPad";
+import AuroraBackground from "../components/ui/AuroraBackground";
 import { setStudentPin } from "../api";
 import { useAuth } from "../context/AuthContext";
 import { saveDevice } from "../deviceStore";
@@ -58,19 +59,19 @@ export default function PinSetup({ onDone, onCancel }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#060b1c] flex flex-col items-center px-6 pt-16 pb-8 relative overflow-hidden">
-      <div className="pointer-events-none absolute -top-32 -right-24 w-72 h-72 rounded-full bg-blue-600/25 blur-3xl" />
+    <div className="relative isolate flex min-h-screen flex-col items-center bg-ink px-6 pt-safe pb-safe">
+      <AuroraBackground />
+      <div className="h-10" />
 
-      <p className="text-sky-400 text-xs font-extrabold uppercase tracking-[0.2em] mb-1.5 relative">
+      <p className="text-lavender text-xs font-bold uppercase tracking-[0.2em] mb-2 relative">
         Sécurité
       </p>
       <h1
-        className="text-white text-2xl uppercase text-center relative"
-        style={{ fontFamily: "'Baloo 2', sans-serif", fontWeight: 800 }}
+        className="text-white text-2xl font-extrabold text-center relative"
       >
         {first === null ? "Crée ton code PIN" : "Confirme ton code PIN"}
       </h1>
-      <p className="text-white/50 text-sm mt-2 mb-8 text-center max-w-xs relative">
+      <p className="text-white/70 text-sm mt-2 mb-8 text-center max-w-xs relative">
         {first === null
           ? "4 chiffres. Il te sera demandé à chaque ouverture de l'application."
           : "Saisis une deuxième fois le même code."}
@@ -80,8 +81,8 @@ export default function PinSetup({ onDone, onCancel }) {
         <PinDots count={pin.length} />
       </div>
 
-      <p className="relative min-h-[2.5rem] text-center text-sm text-red-400 max-w-xs mb-4">
-        {busy ? <span className="text-white/50">Enregistrement…</span> : error}
+      <p role="alert" aria-live="polite" className="relative min-h-[2.5rem] text-center text-sm text-red-300 max-w-xs mb-4">
+        {busy ? <span className="text-white/70">Enregistrement…</span> : error}
       </p>
 
       <div className="relative w-full">
@@ -93,7 +94,7 @@ export default function PinSetup({ onDone, onCancel }) {
           type="button"
           onClick={onCancel}
           disabled={busy}
-          className="text-white/40 text-xs active:opacity-70 transition disabled:opacity-40"
+          className="min-h-[44px] px-3 text-white/65 text-sm active:opacity-70 transition disabled:opacity-40"
         >
           Annuler et se déconnecter
         </button>

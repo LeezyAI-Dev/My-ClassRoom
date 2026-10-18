@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { TrashIcon } from "./ui/Icons";
 import { fetchBannerImages, uploadBannerImage, deleteBannerImage } from "../api";
 import { useAuth } from "../context/AuthContext";
 
@@ -57,9 +58,9 @@ export default function BannerManager() {
   };
 
   return (
-    <div className="mc-card p-5">
-      <h3 className="text-sm font-semibold text-white">Bannière d'accueil</h3>
-      <p className="text-xs text-white/50 mt-1 mb-4">
+    <div className="card p-5">
+      <h3 className="text-[15px] font-bold text-white">Bannière d'accueil</h3>
+      <p className="text-xs text-white/65 mt-1 mb-4">
         Les images ci-dessous défilent automatiquement en haut de l'écran d'accueil, visibles par
         tous (élèves et développeurs).
       </p>
@@ -71,7 +72,7 @@ export default function BannerManager() {
       )}
 
       {loading ? (
-        <p className="text-xs text-white/40 mb-4">Chargement...</p>
+        <p className="text-xs text-white/55 mb-4">Chargement...</p>
       ) : (
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-4">
           {images.map((img) => (
@@ -79,18 +80,20 @@ export default function BannerManager() {
               <img
                 src={img.url}
                 alt=""
-                className="w-full h-16 object-cover rounded-md border border-white/10"
+                className="w-full h-16 object-cover rounded-xl border border-white/10"
               />
               <button
+                type="button"
                 onClick={() => handleDelete(img.id)}
-                className="absolute top-1 right-1 bg-black/60 text-white text-[10px] rounded px-1.5 py-0.5 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition"
+                aria-label="Supprimer cette image"
+                className="absolute -top-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/80 text-red-300 active:bg-red-500/30"
               >
-                Suppr.
+                <TrashIcon size={16} />
               </button>
             </div>
           ))}
           {images.length === 0 && (
-            <p className="col-span-full text-xs text-white/40">
+            <p className="col-span-full text-xs text-white/55">
               Aucune image pour l'instant. Ajoutez-en une pour activer la bannière.
             </p>
           )}
@@ -103,12 +106,12 @@ export default function BannerManager() {
           type="file"
           accept="image/jpeg,image/png,image/webp"
           onChange={(e) => setFile(e.target.files?.[0] || null)}
-          className="flex-1 text-xs text-white/70 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:bg-white/10 file:text-white"
+          className="flex-1 text-xs text-white/70 file:mr-3 file:min-h-[44px] file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-white/10 file:text-white"
         />
         <button
           type="submit"
           disabled={submitting}
-          className="px-4 py-1.5 rounded-md bg-gradient-to-r from-brand-violet to-brand-fuchsia text-white text-xs font-semibold active:brightness-110 disabled:opacity-60 shrink-0"
+          className="btn-primary shrink-0"
         >
           {submitting ? "Envoi..." : "Ajouter une image"}
         </button>

@@ -23,21 +23,23 @@ export const TONES = {
 // Les classes sont écrites en entier (Tailwind ne détecte pas les noms assemblés).
 const FILL =
   "absolute inset-0 rounded-full bg-[linear-gradient(45deg,var(--gf),var(--gt))] opacity-0 transition-opacity duration-500 motion-reduce:transition-none [@media(hover:hover)]:group-hover:opacity-100 group-active:opacity-100";
+const FILL_ON =
+  "absolute inset-0 rounded-full bg-[linear-gradient(45deg,var(--gf),var(--gt))] opacity-100";
 const GLOW =
   "absolute top-[8px] inset-x-0 h-full rounded-full bg-[linear-gradient(45deg,var(--gf),var(--gt))] blur-[15px] opacity-0 -z-10 transition-opacity duration-500 motion-reduce:transition-none [@media(hover:hover)]:group-hover:opacity-50 group-active:opacity-50";
 const FOCUS =
   "outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:opacity-50 disabled:pointer-events-none";
 
-const ICON_SIZE = { sm: "w-10 h-10", md: "w-11 h-11" };
-const PILL_SIZE = { sm: "h-10 px-4 text-sm", md: "h-12 px-6 text-sm" };
+const ICON_SIZE = { sm: "w-11 h-11", md: "w-12 h-12" };
+const PILL_SIZE = { sm: "h-11 px-4 text-sm", md: "h-12 px-6 text-sm" };
 
 const LOOK = {
-  solid: "bg-white text-black shadow-lg",
+  solid: "text-white shadow-glow-sm",
   glass: "bg-white/10 backdrop-blur-xl border border-white/15 text-white",
   danger: "bg-red-500/15 border border-red-400/30 text-red-200",
 };
 const LOOK_TEXT = {
-  solid: "[@media(hover:hover)]:group-hover:text-white group-active:text-white",
+  solid: "",
   glass: "",
   danger: "[@media(hover:hover)]:group-hover:text-white group-active:text-white",
 };
@@ -68,7 +70,7 @@ export default function GradientButton({
         disabled={disabled}
         aria-label={ariaLabel || label}
         style={vars}
-        className={`group relative shrink-0 ${ICON_SIZE[size] || ICON_SIZE.md} rounded-full bg-white shadow-lg flex items-center justify-center transition-all duration-500 motion-reduce:transition-none ${
+        className={`group relative shrink-0 ${ICON_SIZE[size] || ICON_SIZE.md} rounded-full bg-white/[0.09] border border-white/15 flex items-center justify-center transition-all duration-500 motion-reduce:transition-none ${
           label ? "[@media(hover:hover)]:hover:w-[150px]" : ""
         } ${FOCUS} ${className}`}
       >
@@ -76,7 +78,7 @@ export default function GradientButton({
         <span className={GLOW} />
 
         <span
-          className={`relative z-10 flex items-center justify-center text-gray-600 transition-all duration-500 motion-reduce:transition-none [@media(hover:hover)]:group-hover:text-white group-active:text-white ${
+          className={`relative z-10 flex items-center justify-center text-white transition-all duration-500 motion-reduce:transition-none [@media(hover:hover)]:group-hover:text-white group-active:text-white ${
             label ? "[@media(hover:hover)]:group-hover:scale-0" : ""
           }`}
         >
@@ -103,7 +105,7 @@ export default function GradientButton({
         PILL_SIZE[size] || PILL_SIZE.md
       } ${LOOK[look] || LOOK.solid} ${full ? "w-full" : ""} ${FOCUS} ${className}`}
     >
-      <span className={FILL} />
+      <span className={look === "solid" ? FILL_ON : FILL} />
       <span className={GLOW} />
       <span
         className={`relative z-10 flex items-center justify-center gap-2 transition-colors duration-500 motion-reduce:transition-none ${

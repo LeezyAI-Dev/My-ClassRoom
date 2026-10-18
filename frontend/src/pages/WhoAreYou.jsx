@@ -1,149 +1,90 @@
 import React from "react";
+import { APP_NAME, CLASS_NAME } from "../config";
+import AuroraBackground from "../components/ui/AuroraBackground";
+import IconTile from "../components/ui/IconTile";
+import { CapIcon, ChevronRightIcon } from "../components/ui/Icons";
 
-// --- Icônes ---
-
-function ProfileGlyph() {
+function StarGlyph() {
   return (
-    <svg width="30" height="30" viewBox="0 0 24 24" fill="white">
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7v1H4v-1z" />
-    </svg>
-  );
-}
-
-function StarIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-      <path d="M12 2 14.7 8.6 22 9.3 16.5 14 18.2 21 12 17.3 5.8 21 7.5 14 2 9.3 9.3 8.6 12 2z" />
-    </svg>
-  );
-}
-
-function CapGlyph() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-      <path d="M12 3 1 8l11 5 9-4.1V17h2V8L12 3z" />
-      <path d="M5 10.5V15c0 1.7 3.1 4 7 4s7-2.3 7-4v-4.5l-7 3.2-7-3.2z" opacity="0.9" />
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.5 6.6 19.5l1.2-6L3.3 9.3l6.1-.7L12 3z" />
     </svg>
   );
 }
 
 function CodeGlyph() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M9 8 4 12l5 4M15 8l5 4-5 4"
-        stroke="white"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M9 7 4 12l5 5M15 7l5 5-5 5" />
     </svg>
   );
 }
 
-function ArrowIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M5 12h14M13 6l6 6-6 6"
-        stroke="white"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function RoleTile({ icon, label, hint, onClick, gradient, iconBg, glow }) {
+function RoleCard({ icon, tone, label, hint, onClick, disabled = false }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`w-full flex items-center gap-4 rounded-[22px] px-5 py-4 border border-white/10 active:scale-[0.98] transition-transform bg-gradient-to-br ${gradient} ${glow}`}
+      disabled={disabled}
+      className={`card-press flex min-h-[76px] w-full items-center gap-4 p-4 text-left ${
+        disabled ? "pointer-events-none opacity-60" : ""
+      }`}
     >
-      <div
-        className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-lg"
-        style={{ background: iconBg }}
-      >
-        {icon}
-      </div>
-      <div className="flex-1 min-w-0 text-left">
-        <p
-          className="text-white font-extrabold text-[15px] uppercase tracking-wide"
-          style={{ fontFamily: "'Baloo 2', sans-serif" }}
-        >
-          {label}
-        </p>
-        <p className="text-white/50 text-xs mt-0.5">{hint}</p>
-      </div>
-      <span className="w-8 h-8 rounded-full bg-black/30 flex items-center justify-center shrink-0">
-        <ArrowIcon />
+      <IconTile tone={tone}>{icon}</IconTile>
+      <span className="min-w-0 flex-1">
+        <span className="block text-base font-bold text-white">{label}</span>
+        <span className="mt-0.5 block text-[13px] text-white/65">{hint}</span>
       </span>
+      {!disabled && <ChevronRightIcon size={18} className="shrink-0 text-white/50" />}
     </button>
   );
 }
 
 export default function WhoAreYou({ onSelectDeveloper, onSelectStudent }) {
   return (
-    <div className="min-h-screen bg-[#060b1c] flex flex-col relative overflow-hidden">
-      {/* Halo décoratif en fond */}
-      <div className="pointer-events-none absolute -top-32 -right-24 w-72 h-72 rounded-full bg-blue-600/25 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 -left-24 w-72 h-72 rounded-full bg-sky-500/10 blur-3xl" />
+    <div className="relative isolate flex min-h-screen flex-col bg-ink">
+      <AuroraBackground />
 
-      {/* En-tête */}
-      <div className="px-6 pt-12 pb-6 relative">
-        <p className="text-sky-400 text-xs font-extrabold uppercase tracking-[0.2em] mb-1.5">
-          Bienvenue
-        </p>
-        <h1
-          className="text-white text-4xl tracking-wide"
-          style={{ fontFamily: "'Baloo 2', sans-serif", fontWeight: 800 }}
-        >
-          My ClassRoom
-        </h1>
-      </div>
+      <header className="pt-safe flex items-center gap-3 px-5">
+        <IconTile tone="violet" size="sm" glow>
+          <CapIcon size={22} />
+        </IconTile>
+        <p className="text-lg font-extrabold text-white">{APP_NAME}</p>
+      </header>
 
-      {/* Contenu */}
-      <div className="relative flex-1 flex flex-col items-center px-6 pt-6 pb-12">
-        {/* Avatar */}
-        <div className="w-28 h-28 rounded-full flex items-center justify-center bg-gradient-to-br from-[#1660e0] to-[#05122c] border border-white/10 shadow-[0_0_36px_-4px_rgba(37,120,255,0.55)] mb-8">
-          <ProfileGlyph />
-        </div>
+      <main className="pb-safe mx-auto flex w-full max-w-sm flex-1 flex-col px-5">
+        <section className="px-2 pb-8 pt-12 text-center">
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-lavender">Bienvenue</p>
+          <h1 className="bg-title-gradient bg-clip-text text-[2.75rem] font-extrabold leading-none tracking-tight text-transparent">
+            {CLASS_NAME}
+          </h1>
+          <p className="mt-4 text-lg font-semibold text-white">Vous êtes&nbsp;?</p>
+        </section>
 
-        <p className="text-white text-2xl font-semibold mb-8">vous êtes&nbsp;?</p>
-
-        {/* Cases de rôle */}
-        <div className="w-full max-w-sm space-y-4">
-          <RoleTile
-            icon={<StarIcon />}
+        <div className="space-y-3">
+          <RoleCard
+            tone="orchid"
+            icon={<StarGlyph />}
             label="Délégué(e)"
             hint="Bientôt disponible"
-            onClick={() => {}}
-            gradient="from-[#6d28d9] to-[#1b0a35]"
-            iconBg="linear-gradient(135deg, #c4b5fd, #6d28d9)"
-            glow="shadow-[0_0_24px_-6px_rgba(147,51,234,0.4)]"
+            disabled
           />
-          <RoleTile
-            icon={<CapGlyph />}
+          <RoleCard
+            tone="green"
+            icon={<CapIcon size={22} />}
             label="Élève"
             hint="Consulter mon espace de cours"
             onClick={onSelectStudent}
-            gradient="from-[#0e8f6b] to-[#04211b]"
-            iconBg="linear-gradient(135deg, #34d399, #047857)"
-            glow="shadow-[0_0_24px_-4px_rgba(16,185,129,0.5)]"
           />
-          <RoleTile
+          <RoleCard
+            tone="blue"
             icon={<CodeGlyph />}
             label="Développeur"
             hint="Gérer les contenus de l'établissement"
             onClick={onSelectDeveloper}
-            gradient="from-[#1660e0] to-[#05122c]"
-            iconBg="linear-gradient(135deg, #4da3ff, #1454d8)"
-            glow="shadow-[0_0_24px_-4px_rgba(37,120,255,0.55)]"
           />
         </div>
-      </div>
+      </main>
     </div>
   );
 }

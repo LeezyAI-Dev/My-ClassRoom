@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import AuroraBackground from "../components/ui/AuroraBackground";
+import PageHeader from "../components/ui/PageHeader";
+import { CalcIcon, ResetIcon } from "../components/ui/Icons";
 
 // ───────────────────────────────────────────────────────────
 // Configuration des matières + coefficients (directives Chris)
@@ -45,44 +48,6 @@ function loadStoredNotes(username) {
 }
 
 // ───────────────────────────────────────────────────────────
-// Icônes
-// ───────────────────────────────────────────────────────────
-function BackIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M15 5L8 12L15 19"
-        stroke="white"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function ResetIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M4 4v5h5"
-        stroke="white"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M4.6 13a8 8 0 1 0 2.3-7.5L4 9"
-        stroke="white"
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-// ───────────────────────────────────────────────────────────
 // Une ligne matière : nom + badge coefficient à gauche,
 // champ de note à droite. Pleine largeur => le nom ne coupe jamais.
 // ───────────────────────────────────────────────────────────
@@ -110,7 +75,7 @@ function SubjectRow({ subject, value, onChange, isLast }) {
     >
       <div className="flex items-center gap-2.5 min-w-0 flex-1">
         <span
-          className="w-7 h-7 shrink-0 rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 text-white text-[11px] font-bold flex items-center justify-center"
+          className="w-7 h-7 shrink-0 rounded-lg bg-brand-gradient text-white text-[11px] font-bold flex items-center justify-center"
           title={`Coefficient ${subject.coef}`}
         >
           {subject.coef}
@@ -126,10 +91,11 @@ function SubjectRow({ subject, value, onChange, isLast }) {
         value={value === undefined ? "" : value}
         onChange={handleChange}
         placeholder="—"
-        className={`w-16 h-11 shrink-0 rounded-xl border-2 text-center font-bold text-white outline-none transition-colors ${
+        aria-label={`Note de ${subject.label}`}
+        className={`w-16 h-12 shrink-0 rounded-xl border-2 text-center font-bold text-white outline-none transition-colors ${
           filled
-            ? "border-sky-400 bg-sky-500/15"
-            : "border-white/15 bg-white/5 focus:border-white/30"
+            ? "border-violet-400 bg-violet-500/20"
+            : "border-white/15 bg-white/[0.06] focus:border-violet-400"
         }`}
       />
     </div>
@@ -141,11 +107,11 @@ function SectionCard({ title, accent, subjects, notes, onChangeNote }) {
     <div className="mb-5">
       <div className="flex items-center gap-2 mb-2 px-1">
         <span className={`w-1.5 h-4 rounded-full ${accent}`} />
-        <h3 className="text-[13px] font-extrabold uppercase tracking-wide text-white/50">
+        <h3 className="text-[13px] font-extrabold uppercase tracking-wide text-white/70">
           {title}
         </h3>
       </div>
-      <div className="bg-white/5 rounded-2xl border border-white/10 px-4">
+      <div className="card px-4">
         {subjects.map((s, i) => (
           <SubjectRow
             key={s.key}
@@ -165,24 +131,24 @@ function SectionCard({ title, accent, subjects, notes, onChangeNote }) {
 // ───────────────────────────────────────────────────────────
 function SemesterPanel({ notes, onChangeNote, average }) {
   return (
-    <div className="w-full h-full overflow-y-auto px-4 sm:px-6 pt-4 pb-8">
+    <div className="w-full h-full overflow-y-auto px-5 pt-2 pb-nav">
       <div className="max-w-xl mx-auto">
         <SectionCard
           title="Matières générales"
-          accent="bg-sky-400"
+          accent="bg-violet-400"
           subjects={GENERALES}
           notes={notes}
           onChangeNote={onChangeNote}
         />
         <SectionCard
           title="Matières techniques"
-          accent="bg-amber-400"
+          accent="bg-fuchsia-400"
           subjects={TECHNIQUES}
           notes={notes}
           onChangeNote={onChangeNote}
         />
 
-        <div className="bg-gradient-to-br from-[#1660e0] to-[#05122c] border border-white/10 rounded-2xl px-6 py-6 flex items-center justify-between shadow-[0_0_28px_-6px_rgba(37,120,255,0.5)]">
+        <div className="bg-gradient-to-br from-[#7c3aed] to-[#2a0d5c] border border-white/10 rounded-2xl px-6 py-6 flex items-center justify-between shadow-glow-sm">
           <div>
             <p
               className="text-white/60 text-[11px] font-bold uppercase tracking-widest mb-1"
@@ -191,14 +157,12 @@ function SemesterPanel({ notes, onChangeNote, average }) {
             </p>
             <h2
               className="text-white text-lg font-extrabold uppercase"
-              style={{ fontFamily: "'Baloo 2', sans-serif" }}
             >
               Sur 20 points
             </h2>
           </div>
           <span
-            className="text-3xl font-extrabold text-sky-300"
-            style={{ fontFamily: "'Baloo 2', sans-serif" }}
+            className="text-3xl font-extrabold text-white"
           >
             {average !== null ? average.toFixed(2) : "—"}
           </span>
@@ -306,55 +270,43 @@ export default function AverageCalculator({ onBack }) {
   const dragPct = trackWidth.current ? (dragOffset / trackWidth.current) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-[#060b1c] flex flex-col">
-      {/* Header */}
-      <header className="px-5 pt-9 pb-5 flex items-center justify-between gap-4 shrink-0">
-        <div className="flex items-center gap-4 min-w-0">
+    <div className="relative isolate min-h-screen bg-ink flex flex-col">
+      <AuroraBackground />
+      <PageHeader
+        title="Moyenne"
+        subtitle="Calculateur sur 20"
+        icon={<CalcIcon size={24} />}
+        tone="blue"
+        right={
           <button
-            onClick={onBack}
-            aria-label="Retour"
-            className="w-10 h-10 rounded-full border-2 border-white/30 flex items-center justify-center active:opacity-70 transition shrink-0"
+            type="button"
+            onClick={handleResetAll}
+            aria-label="Réinitialiser toutes les notes"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/[0.08] text-white transition active:bg-white/20 motion-reduce:transition-none"
           >
-            <BackIcon />
+            <ResetIcon size={20} />
           </button>
-          <h1
-            className="text-white text-[1.15rem] sm:text-[1.5rem] truncate"
-            style={{ fontFamily: "'Baloo 2', sans-serif", fontWeight: 800 }}
-          >
-            Calculateur de m<span className="text-sky-400">oy</span>enne
-          </h1>
-        </div>
+        }
+      />
 
-        <button
-          onClick={handleResetAll}
-          aria-label="Réinitialiser toutes les notes"
-          title="Réinitialiser toutes les notes"
-          className="w-10 h-10 rounded-full border-2 border-white/30 flex items-center justify-center active:opacity-70 transition shrink-0"
-        >
-          <ResetIcon />
-        </button>
-      </header>
-
-      {/* Sélecteur de semestre (segmented control, toujours visible) */}
-      <div className="px-4 sm:px-6 pb-3 shrink-0">
-        <div className="max-w-xl mx-auto flex bg-white/5 border border-white/10 rounded-xl p-1">
+      {/* Sélecteur de semestre (toujours visible) */}
+      <div className="px-5 pb-3 shrink-0">
+        <div className="seg mx-auto max-w-xl" role="tablist" aria-label="Semestre">
           <button
+            type="button"
+            role="tab"
+            aria-selected={semester === 1}
             onClick={() => goTo(1)}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-extrabold uppercase tracking-wide transition-colors ${
-              semester === 1
-                ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-[0_0_16px_-2px_rgba(56,189,248,0.6)]"
-                : "text-white/50"
-            }`}
+            className={`seg-item ${semester === 1 ? "seg-item-on" : ""}`}
           >
             Semestre 1
           </button>
           <button
+            type="button"
+            role="tab"
+            aria-selected={semester === 2}
             onClick={() => goTo(2)}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-extrabold uppercase tracking-wide transition-colors ${
-              semester === 2
-                ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-[0_0_16px_-2px_rgba(56,189,248,0.6)]"
-                : "text-white/50"
-            }`}
+            className={`seg-item ${semester === 2 ? "seg-item-on" : ""}`}
           >
             Semestre 2
           </button>

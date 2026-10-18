@@ -153,17 +153,20 @@ export default function SubjectResourcePanel({ subject, onClose }) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 sm:p-6"
+      className="fixed inset-0 bg-black/75 flex items-end sm:items-center justify-center z-50 sm:p-6"
       onClick={onClose}
     >
       <div
-        className="bg-[#0b1230] border border-white/10 w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl max-h-[88vh] flex flex-col shadow-2xl"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Ressources : ${subject.name}`}
+        className="bg-surface border border-white/10 w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl max-h-[88vh] flex flex-col shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-white/10">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-sky-400 mb-0.5">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-violet-300 mb-0.5">
               Ressources
             </p>
             <h3 className="text-lg font-bold text-white">{subject.name}</h3>
@@ -171,21 +174,21 @@ export default function SubjectResourcePanel({ subject, onClose }) {
           <button
             onClick={onClose}
             aria-label="Fermer"
-            className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition shrink-0"
+            className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center active:bg-white/20 transition shrink-0 -mt-1 -mr-2"
           >
             <CloseIcon />
           </button>
         </div>
 
         {/* Contenu scrollable */}
-        <div className="overflow-y-auto px-6 py-5 flex-1">
-          {loading && <p className="text-sm text-white/40">Chargement...</p>}
+        <div className="overflow-y-auto px-6 py-5 flex-1 pb-safe">
+          {loading && <p className="text-sm text-white/55">Chargement...</p>}
           {loadError && <p className="text-sm text-red-300">{loadError}</p>}
 
           {!loading && !loadError && (
             <ul className="space-y-2.5">
               {resources.length === 0 && (
-                <li className="text-sm text-white/40 text-center py-8">
+                <li className="text-sm text-white/55 text-center py-8">
                   Aucune ressource pour le moment.
                 </li>
               )}
@@ -197,7 +200,7 @@ export default function SubjectResourcePanel({ subject, onClose }) {
                 return (
                   <li
                     key={r.id}
-                    className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 hover:border-white/20 transition"
+                    className="flex items-center gap-3 card px-4 py-3"
                   >
                     <span className="w-9 h-9 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center shrink-0">
                       <Icon />
@@ -215,7 +218,7 @@ export default function SubjectResourcePanel({ subject, onClose }) {
                       <button
                         onClick={() => handleDelete(r.id)}
                         aria-label="Supprimer"
-                        className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-red-500/10 transition shrink-0"
+                        className="w-11 h-11 rounded-full flex items-center justify-center active:bg-red-500/15 transition shrink-0 -mr-2"
                       >
                         <TrashIcon />
                       </button>
@@ -228,30 +231,22 @@ export default function SubjectResourcePanel({ subject, onClose }) {
 
           {isDeveloper && (
             <div className="mt-6 pt-5 border-t border-white/10">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-sky-400 mb-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-violet-300 mb-3">
                 Ajouter une ressource
               </p>
 
-              <div className="bg-white/5 border border-white/10 rounded-full p-1 flex mb-4">
+              <div className="seg mb-4">
                 <button
                   type="button"
                   onClick={() => setAddMode("pdf")}
-                  className={`flex-1 py-2 rounded-full text-xs font-semibold transition ${
-                    addMode === "pdf"
-                      ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white"
-                      : "text-white/50"
-                  }`}
+                  className={`seg-item ${addMode === "pdf" ? "seg-item-on" : ""}`}
                 >
                   PDF
                 </button>
                 <button
                   type="button"
                   onClick={() => setAddMode("link")}
-                  className={`flex-1 py-2 rounded-full text-xs font-semibold transition ${
-                    addMode === "link"
-                      ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white"
-                      : "text-white/50"
-                  }`}
+                  className={`seg-item ${addMode === "link" ? "seg-item-on" : ""}`}
                 >
                   Lien
                 </button>
@@ -264,11 +259,11 @@ export default function SubjectResourcePanel({ subject, onClose }) {
                     placeholder="Titre (optionnel)"
                     value={pdfTitle}
                     onChange={(e) => setPdfTitle(e.target.value)}
-                    className="w-full bg-white/5 border border-white/15 text-white placeholder:text-white/35 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-sky-400 transition"
+                    className="field"
                   />
                   <label
                     htmlFor={`pdf-input-${subject.id}`}
-                    className="flex items-center justify-center gap-2 w-full border border-dashed border-white/20 rounded-xl px-3.5 py-4 text-sm text-white/50 cursor-pointer hover:border-sky-400 hover:bg-white/5 transition"
+                    className="flex items-center justify-center gap-2 w-full border border-dashed border-white/20 rounded-xl px-3.5 py-4 text-sm text-white/60 cursor-pointer hover:border-violet-400 hover:bg-white/5 transition"
                   >
                     {pdfFile ? pdfFile.name : "Choisir un fichier PDF (20 Mo max)"}
                   </label>
@@ -282,7 +277,7 @@ export default function SubjectResourcePanel({ subject, onClose }) {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white text-sm font-semibold hover:brightness-110 transition disabled:opacity-60"
+                    className="btn-primary w-full"
                   >
                     {submitting ? "Envoi..." : "Envoyer le PDF"}
                   </button>
@@ -294,19 +289,19 @@ export default function SubjectResourcePanel({ subject, onClose }) {
                     placeholder="Titre"
                     value={linkTitle}
                     onChange={(e) => setLinkTitle(e.target.value)}
-                    className="w-full bg-white/5 border border-white/15 text-white placeholder:text-white/35 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-sky-400 transition"
+                    className="field"
                   />
                   <input
                     type="url"
                     placeholder="https://..."
                     value={linkUrl}
                     onChange={(e) => setLinkUrl(e.target.value)}
-                    className="w-full bg-white/5 border border-white/15 text-white placeholder:text-white/35 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-sky-400 transition"
+                    className="field"
                   />
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white text-sm font-semibold hover:brightness-110 transition disabled:opacity-60"
+                    className="btn-primary w-full"
                   >
                     {submitting ? "Ajout..." : "Ajouter le lien"}
                   </button>

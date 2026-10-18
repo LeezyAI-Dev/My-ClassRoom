@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import AuroraBackground from "../components/ui/AuroraBackground";
+import PageHeader from "../components/ui/PageHeader";
+import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from "../components/ui/Icons";
 import {
   fetchSchedule,
   fetchSubjects,
@@ -38,7 +41,7 @@ const EMPTY_FORM = {
 // Palette cyclique pour distinguer les matières visuellement (fond dégradé sombre
 // + accent vif, cohérente avec le thème général de l'application).
 const COLOR_PALETTE = [
-  { border: "border-sky-400", bg: "bg-sky-500/10", text: "text-sky-300", solid: "bg-gradient-to-br from-[#1660e0] to-[#05122c]" },
+  { border: "border-blue-400", bg: "bg-blue-500/10", text: "text-blue-300", solid: "bg-gradient-to-br from-[#2f6be4] to-[#0c1f4d]" },
   { border: "border-emerald-400", bg: "bg-emerald-500/10", text: "text-emerald-300", solid: "bg-gradient-to-br from-[#0e8f6b] to-[#04211b]" },
   { border: "border-amber-400", bg: "bg-amber-500/10", text: "text-amber-300", solid: "bg-gradient-to-br from-[#f2960c] to-[#3a1503]" },
   { border: "border-rose-400", bg: "bg-rose-500/10", text: "text-rose-300", solid: "bg-gradient-to-br from-[#e11d48] to-[#33040f]" },
@@ -49,7 +52,7 @@ const COLOR_PALETTE = [
 ];
 
 function colorForSubject(subjectId) {
-  if (!subjectId) return { border: "border-white/20", bg: "bg-white/5", text: "text-white/50", solid: "bg-white/5" };
+  if (!subjectId) return { border: "border-white/20", bg: "bg-white/5", text: "text-white/60", solid: "bg-white/5" };
   return COLOR_PALETTE[subjectId % COLOR_PALETTE.length];
 }
 
@@ -84,7 +87,7 @@ function SlotForm({ form, setForm, subjects, onSubmit, onCancel, submitting, err
   return (
     <form
       onSubmit={onSubmit}
-      className="bg-[#0b1230] border border-white/10 rounded-2xl p-5 space-y-4"
+      className="bg-surface border border-white/10 rounded-3xl p-5 space-y-4"
     >
       <h3 className="text-sm font-semibold text-white">
         {form.id ? "Modifier le cours" : "Ajouter un cours"}
@@ -98,14 +101,14 @@ function SlotForm({ form, setForm, subjects, onSubmit, onCancel, submitting, err
 
       <div className="grid sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs text-white/50 mb-1">Jour</label>
+          <label className="block text-xs font-semibold text-white/70 mb-1.5">Jour</label>
           <select
             value={form.day_of_week}
             onChange={(e) => setForm({ ...form, day_of_week: Number(e.target.value) })}
-            className="w-full bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-sky-400"
+            className="field"
           >
             {DAYS.map((d) => (
-              <option key={d.value} value={d.value} className="bg-[#0b1230]">
+              <option key={d.value} value={d.value} className="bg-surface">
                 {d.label}
               </option>
             ))}
@@ -113,15 +116,15 @@ function SlotForm({ form, setForm, subjects, onSubmit, onCancel, submitting, err
         </div>
 
         <div>
-          <label className="block text-xs text-white/50 mb-1">Matière</label>
+          <label className="block text-xs font-semibold text-white/70 mb-1.5">Matière</label>
           <select
             value={form.subject_id}
             onChange={(e) => setForm({ ...form, subject_id: e.target.value })}
-            className="w-full bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-sky-400"
+            className="field"
           >
-            <option value="" className="bg-[#0b1230]">— Aucune —</option>
+            <option value="" className="bg-surface">— Aucune —</option>
             {allSubjects.map((s) => (
-              <option key={s.id} value={s.id} className="bg-[#0b1230]">
+              <option key={s.id} value={s.id} className="bg-surface">
                 {s.name}
               </option>
             ))}
@@ -129,63 +132,53 @@ function SlotForm({ form, setForm, subjects, onSubmit, onCancel, submitting, err
         </div>
 
         <div>
-          <label className="block text-xs text-white/50 mb-1">Heure de début</label>
+          <label className="block text-xs font-semibold text-white/70 mb-1.5">Heure de début</label>
           <input
             type="time"
             value={form.start_time}
             onChange={(e) => setForm({ ...form, start_time: e.target.value })}
             min="08:00"
             max="17:00"
-            className="w-full bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-sky-400 [color-scheme:dark]"
+            className="field"
           />
         </div>
 
         <div>
-          <label className="block text-xs text-white/50 mb-1">Heure de fin</label>
+          <label className="block text-xs font-semibold text-white/70 mb-1.5">Heure de fin</label>
           <input
             type="time"
             value={form.end_time}
             onChange={(e) => setForm({ ...form, end_time: e.target.value })}
             min="08:00"
             max="17:00"
-            className="w-full bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-sky-400 [color-scheme:dark]"
+            className="field"
           />
         </div>
 
         <div>
-          <label className="block text-xs text-white/50 mb-1">Salle (optionnel)</label>
+          <label className="block text-xs font-semibold text-white/70 mb-1.5">Salle (optionnel)</label>
           <input
             type="text"
             value={form.room}
             onChange={(e) => setForm({ ...form, room: e.target.value })}
-            className="w-full bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-sky-400"
+            className="field"
           />
         </div>
 
         <div>
-          <label className="block text-xs text-white/50 mb-1">Professeur (optionnel)</label>
+          <label className="block text-xs font-semibold text-white/70 mb-1.5">Professeur (optionnel)</label>
           <input
             type="text"
             value={form.teacher}
             onChange={(e) => setForm({ ...form, teacher: e.target.value })}
-            className="w-full bg-white/5 border border-white/15 text-white rounded-lg px-3 py-2 text-sm outline-none focus:border-sky-400"
+            className="field"
           />
         </div>
       </div>
 
       <div className="flex gap-2 justify-end pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 text-sm rounded-lg text-white/60 hover:bg-white/10 transition"
-        >
-          Annuler
-        </button>
-        <button
-          type="submit"
-          disabled={submitting}
-          className="px-4 py-2 text-sm rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:brightness-110 transition disabled:opacity-60"
-        >
+        <button type="button" onClick={onCancel} className="btn-ghost">Annuler</button>
+        <button type="submit" disabled={submitting} className="btn-primary">
           {submitting ? "Enregistrement..." : form.id ? "Enregistrer" : "Ajouter"}
         </button>
       </div>
@@ -207,7 +200,7 @@ function WeekView({ slots, isDeveloper, onSlotClick, onAddClick }) {
   const rowStartFor = (minutes) => Math.round((minutes - DAY_START_MIN) / STEP) + 2; // +2 : ligne 1 = en-tête
 
   return (
-    <div className="bg-[#0b1230] border border-white/10 rounded-2xl overflow-hidden overflow-x-auto">
+    <div className="bg-surface border border-white/10 rounded-2xl overflow-hidden overflow-x-auto">
       <div
         className="grid"
         style={{
@@ -217,13 +210,13 @@ function WeekView({ slots, isDeveloper, onSlotClick, onAddClick }) {
         }}
       >
         {/* Coin haut-gauche */}
-        <div className="bg-gradient-to-br from-[#1660e0] to-[#05122c]" style={{ gridColumn: 1, gridRow: 1 }} />
+        <div className="bg-gradient-to-br from-[#7c3aed] to-[#2a0d5c]" style={{ gridColumn: 1, gridRow: 1 }} />
 
         {/* En-têtes des jours */}
         {DAYS.map((day, i) => (
           <div
             key={day.value}
-            className="bg-gradient-to-br from-[#1660e0] to-[#05122c] border-l border-white/10 flex flex-col items-center justify-center"
+            className="bg-gradient-to-br from-[#7c3aed] to-[#2a0d5c] border-l border-white/10 flex flex-col items-center justify-center"
             style={{ gridColumn: i + 2, gridRow: 1 }}
           >
             <p className="text-white text-[11px] font-extrabold uppercase tracking-wide">
@@ -232,7 +225,7 @@ function WeekView({ slots, isDeveloper, onSlotClick, onAddClick }) {
             {isDeveloper && (
               <button
                 onClick={() => onAddClick(day.value)}
-                className="text-[9px] text-sky-300 hover:text-sky-200 leading-none mt-0.5"
+                className="text-[9px] text-violet-300 hover:text-violet-300 leading-none mt-0.5"
               >
                 + cours
               </button>
@@ -248,7 +241,7 @@ function WeekView({ slots, isDeveloper, onSlotClick, onAddClick }) {
             style={{ gridColumn: 1, gridRow: i + 2 }}
           >
             {min % 60 === 0 && (
-              <span className="text-[10px] font-bold text-white/40">
+              <span className="text-[10px] font-bold text-white/55">
                 {String(Math.floor(min / 60)).padStart(2, "0")}h
               </span>
             )}
@@ -289,7 +282,7 @@ function WeekView({ slots, isDeveloper, onSlotClick, onAddClick }) {
                   {slot.subject_name || "—"}
                 </p>
                 {rowSpan > 1 && (
-                  <p className="text-[9px] text-white/40 leading-tight truncate">
+                  <p className="text-[9px] text-white/55 leading-tight truncate">
                     {slot.room ? `Salle ${slot.room}` : `${slot.start_time}-${slot.end_time}`}
                   </p>
                 )}
@@ -349,12 +342,12 @@ function DayView({ slots, dayIndex, setDayIndex, isDeveloper, onSlotClick, onAdd
         <button
           onClick={goPrev}
           aria-label="Jour précédent"
-          className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 active:opacity-70 transition"
+          className="w-11 h-11 rounded-full bg-white/[0.08] border border-white/15 flex items-center justify-center text-white active:bg-white/20 transition"
         >
-          ←
+          <ChevronLeftIcon size={20} />
         </button>
         <div className="text-center">
-          <p className="text-[10px] font-extrabold uppercase tracking-widest text-sky-400 mb-0.5">
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-violet-300 mb-0.5">
             Emploi du temps
           </p>
           <p className="text-lg font-extrabold text-white">{day.label}</p>
@@ -362,23 +355,23 @@ function DayView({ slots, dayIndex, setDayIndex, isDeveloper, onSlotClick, onAdd
         <button
           onClick={goNext}
           aria-label="Jour suivant"
-          className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 active:opacity-70 transition"
+          className="w-11 h-11 rounded-full bg-white/[0.08] border border-white/15 flex items-center justify-center text-white active:bg-white/20 transition"
         >
-          →
+          <ChevronRightIcon size={20} />
         </button>
       </div>
 
       {isDeveloper && (
         <button
           onClick={() => onAddClick(day.value)}
-          className="w-full mb-4 text-xs font-semibold text-white/60 border-2 border-dashed border-white/15 rounded-xl py-2.5 hover:border-sky-400 hover:text-white transition"
+          className="w-full mb-4 text-xs font-semibold text-white/60 border-2 border-dashed border-white/15 rounded-xl py-2.5 hover:border-violet-400 hover:text-white transition"
         >
           + Ajouter un cours ce jour
         </button>
       )}
 
       {daySlots.length === 0 && (
-        <p className="text-sm text-white/30 italic text-center py-14">Aucun cours ce jour</p>
+        <p className="text-sm text-white/50 italic text-center py-14">Aucun cours ce jour</p>
       )}
 
       {/* Liste des cours, façon cartes d'appli en dégradé */}
@@ -403,13 +396,13 @@ function DayView({ slots, dayIndex, setDayIndex, isDeveloper, onSlotClick, onAdd
             const prefix = isNext ? "Prochain cours" : "Cours";
             liveStatus = {
               text: `${prefix} de ${subjectLabel}${teacherPart} dans ${formatCountdown(startSec - nowSeconds)}`,
-              className: isNext ? "text-sky-300" : "text-white/50",
+              className: isNext ? "text-violet-300" : "text-white/60",
               pulse: false,
             };
           } else if (state === "past") {
             liveStatus = {
               text: "Cours terminé",
-              className: "text-white/25 italic",
+              className: "text-white/50 italic",
               pulse: false,
             };
           }
@@ -435,17 +428,17 @@ function DayView({ slots, dayIndex, setDayIndex, isDeveloper, onSlotClick, onAdd
                 <div className="flex-1 min-w-0">
                   <p className="text-[15px] font-bold text-white truncate">{subjectLabel}</p>
                   {slot.teacher ? (
-                    <p className="text-xs text-white/40 truncate">{slot.teacher}</p>
+                    <p className="text-xs text-white/55 truncate">{slot.teacher}</p>
                   ) : (
-                    <p className="text-xs text-white/25 italic">Professeur non renseigné</p>
+                    <p className="text-xs text-white/50 italic">Professeur non renseigné</p>
                   )}
                 </div>
 
                 <div className="text-right shrink-0">
                   <p className="text-xs font-bold text-white/80">{slot.start_time}</p>
-                  <p className="text-[10px] text-white/40">{slot.end_time}</p>
+                  <p className="text-[10px] text-white/55">{slot.end_time}</p>
                   {slot.room && (
-                    <span className="inline-block mt-1 text-[10px] font-semibold text-sky-300 bg-sky-500/10 rounded-full px-2 py-0.5">
+                    <span className="inline-block mt-1 text-[10px] font-semibold text-violet-300 bg-violet-500/15 rounded-full px-2 py-0.5">
                       Salle {slot.room}
                     </span>
                   )}
@@ -588,61 +581,40 @@ export default function Schedule({ onBack }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#060b1c]">
-      <header className="px-5 pt-9 pb-5 flex items-center gap-4">
-        <button
-          onClick={onBack}
-          aria-label="Retour"
-          className="w-10 h-10 rounded-full border-2 border-white/30 flex items-center justify-center active:opacity-70 transition shrink-0"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M15 5L8 12L15 19"
-              stroke="white"
-              strokeWidth="2.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-        <div>
-          <h1
-            className="text-white text-[1.3rem] sm:text-[1.5rem]"
-            style={{ fontFamily: "'Baloo 2', sans-serif", fontWeight: 800 }}
-          >
-            Emploi du t<span className="text-sky-400">em</span>ps
-          </h1>
-          <p className="text-white/40 text-xs font-medium mt-0.5">08h00 — 17h00</p>
-        </div>
-      </header>
+    <div className="relative isolate min-h-screen bg-ink">
+      <AuroraBackground />
+      <PageHeader
+        title="Emploi du temps"
+        subtitle="08h00 — 17h00"
+        icon={<CalendarIcon size={24} />}
+        tone="blue"
+      />
 
-      <div className="px-4 sm:px-6 pb-3">
-        <div className="max-w-xl mx-auto flex bg-white/5 border border-white/10 rounded-xl p-1">
+      <div className="px-5 pb-4">
+        <div className="seg mx-auto max-w-xl" role="tablist" aria-label="Affichage">
           <button
+            type="button"
+            role="tab"
+            aria-selected={view === "day"}
             onClick={() => setView("day")}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-extrabold uppercase tracking-wide transition-colors ${
-              view === "day"
-                ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-[0_0_16px_-2px_rgba(56,189,248,0.6)]"
-                : "text-white/50"
-            }`}
+            className={`seg-item ${view === "day" ? "seg-item-on" : ""}`}
           >
-            Vue Jour
+            Jour
           </button>
           <button
+            type="button"
+            role="tab"
+            aria-selected={view === "week"}
             onClick={() => setView("week")}
-            className={`flex-1 py-2.5 rounded-lg text-sm font-extrabold uppercase tracking-wide transition-colors ${
-              view === "week"
-                ? "bg-gradient-to-r from-sky-500 to-blue-600 text-white shadow-[0_0_16px_-2px_rgba(56,189,248,0.6)]"
-                : "text-white/50"
-            }`}
+            className={`seg-item ${view === "week" ? "seg-item-on" : ""}`}
           >
-            Vue Semaine
+            Semaine
           </button>
         </div>
       </div>
 
-      <main className="max-w-6xl mx-auto px-6 pb-10 space-y-6">
-        {loading && <p className="text-sm text-white/50">Chargement...</p>}
+      <main className="max-w-6xl mx-auto px-5 pb-nav space-y-6">
+        {loading && <p className="text-sm text-white/60">Chargement...</p>}
         {error && (
           <div className="text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
             {error}
@@ -652,7 +624,7 @@ export default function Schedule({ onBack }) {
         {!loading && !error && (
           <>
             {!isDeveloper && (
-              <p className="text-xs text-white/40">
+              <p className="text-xs text-white/55">
                 Consultation seule. La modification est réservée au compte développeur.
               </p>
             )}
@@ -671,7 +643,7 @@ export default function Schedule({ onBack }) {
                 {form.id && (
                   <button
                     onClick={handleDeleteFromForm}
-                    className="text-xs text-red-400 hover:underline"
+                    className="min-h-[44px] text-sm font-semibold text-red-300 underline-offset-2 hover:underline"
                   >
                     Supprimer ce cours
                   </button>

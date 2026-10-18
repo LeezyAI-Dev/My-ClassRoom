@@ -14,6 +14,11 @@ import PinLock from "./pages/PinLock";
 import PinSetup from "./pages/PinSetup";
 import PinForgot from "./pages/PinForgot";
 import { getDevice, clearDevice } from "./deviceStore";
+import BottomNav from "./components/ui/BottomNav";
+
+// Écrans connectés qui affichent la barre de navigation du bas.
+// Eyes en est exclu : c'est un fil plein écran (comme une vidéo verticale) avec son propre en-tête.
+const NAV_SCREENS = ["dashboard", "subjects", "schedule", "average", "checklist", "grades"];
 
 // Écrans possibles :
 // "who" -> "devAuth" | "studentAuth" -> "dashboard" -> "subjects" | "schedule" | "average" | "eyes" | "checklist" | "grades"
@@ -29,6 +34,7 @@ function AppContent() {
     setScreen("who");
   };
 
+  const renderScreen = () => {
   if (screen === "who") {
     return (
       <WhoAreYou
@@ -116,6 +122,21 @@ function AppContent() {
   }
 
   return <Dashboard onNavigate={(key) => setScreen(key)} onLogout={handleLogout} />;
+  };
+
+  return (
+    <>
+      {renderScreen()}
+      {NAV_SCREENS.includes(screen) && (
+        <BottomNav
+          canGoBack={screen !== "dashboard"}
+          onBack={() => setScreen("dashboard")}
+          onHome={() => setScreen("dashboard")}
+          onLogout={handleLogout}
+        />
+      )}
+    </>
+  );
 }
 
 export default function App() {

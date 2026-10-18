@@ -34,7 +34,10 @@ export default function BannerCarousel() {
   const slides = devImages;
 
   useEffect(() => {
-    if (slides.length <= 1) return undefined;
+    // Pas de défilement automatique si l'appareil demande moins d'animations.
+    const reduceMotion =
+      typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (slides.length <= 1 || reduceMotion) return undefined;
     slideTimer.current = setInterval(() => {
       setIndex((i) => (i + 1) % slides.length);
     }, SLIDE_INTERVAL);
@@ -50,7 +53,7 @@ export default function BannerCarousel() {
   if (slides.length === 0) return null;
 
   return (
-    <div className="relative w-full h-[190px] rounded-[28px] border border-white/10 overflow-hidden bg-night-card">
+    <div className="relative w-full h-[190px] rounded-3xl border border-white/10 overflow-hidden bg-surface">
       {slides.map((slide, i) => (
         <div
           key={slide.id}
@@ -71,16 +74,22 @@ export default function BannerCarousel() {
       ))}
 
       {slides.length > 1 && (
-        <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5">
+        <div className="absolute bottom-0 left-0 right-0 flex justify-center">
           {slides.map((slide, i) => (
             <button
               key={slide.id}
+              type="button"
               onClick={() => setIndex(i)}
-              aria-label={`Aller au slide ${i + 1}`}
-              className={`h-1.5 rounded-full transition-all ${
-                i === index ? "w-5 bg-brand-lavender" : "w-1.5 bg-white/40"
-              }`}
-            />
+              aria-label={`Aller à l'image ${i + 1}`}
+              aria-current={i === index}
+              className="flex h-11 w-7 items-center justify-center"
+            >
+              <span
+                className={`h-1.5 rounded-full transition-all ${
+                  i === index ? "w-5 bg-violet-300" : "w-1.5 bg-white/60"
+                }`}
+              />
+            </button>
           ))}
         </div>
       )}

@@ -1,60 +1,21 @@
 import React, { useState } from "react";
-
-// --- Petites icônes SVG en ligne (pas de dépendance externe) ---
-
-function BackArrowIcon() {
-  return (
-    <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M11 5 L4 12 L11 19 M4 12 H16 A5 5 0 0 1 21 17 V18"
-        stroke="#ffffff"
-        strokeWidth="2.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-    </svg>
-  );
-}
-
-function IdIcon() {
-  return (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="#7dd3fc">
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 20c0-4.4 3.6-7 8-7s8 2.6 8 7v1H4v-1z" />
-    </svg>
-  );
-}
+import AuroraBackground from "./ui/AuroraBackground";
+import { ChevronLeftIcon, EyeIcon, UserIcon } from "./ui/Icons";
 
 function LockIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="#7dd3fc">
-      <path d="M6 10V8a6 6 0 1 1 12 0v2h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h1zm2 0h8V8a4 4 0 1 0-8 0v2z" />
-      <circle cx="12" cy="15" r="1.6" fill="#060b1c" />
-      <rect x="11.1" y="15.5" width="1.8" height="3" fill="#060b1c" />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="5" y="10.5" width="14" height="10" rx="2.4" />
+      <path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" />
     </svg>
   );
 }
 
-function ThumbsUpIcon() {
+function CheckIcon() {
   return (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="#7dd3fc">
-      <path d="M2 21h3V10H2v11zM22 12a2 2 0 0 0-2-2h-5.6l.8-3.9.03-.4a1.5 1.5 0 0 0-.44-1.06L13.7 3 8 8.7A2 2 0 0 0 7.4 10.1V19a2 2 0 0 0 2 2h7a2 2 0 0 0 1.84-1.21l3-7A2 2 0 0 0 22 12z" />
-    </svg>
-  );
-}
-
-// Œil ouvert : mot de passe actuellement affiché en clair.
-function EyeIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z"
-        stroke="#93c5fd"
-        strokeWidth="1.8"
-        strokeLinejoin="round"
-      />
-      <circle cx="12" cy="12" r="3" stroke="#93c5fd" strokeWidth="1.8" />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="m8.5 12.2 2.4 2.4 4.6-5" />
     </svg>
   );
 }
@@ -62,28 +23,57 @@ function EyeIcon() {
 // Œil barré : mot de passe masqué.
 function EyeOffIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M9.9 9.9a3 3 0 0 0 4.2 4.2M6.6 6.6C3.6 8.4 1.5 12 1.5 12S5 19 12 19c1.1 0 2.1-.15 3-.42M10.6 5.1A10.6 10.6 0 0 1 12 5c7 0 10.5 7 10.5 7a15 15 0 0 1-3.4 4.3"
-        stroke="#93c5fd"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      <path d="M3 3l18 18" stroke="#93c5fd" strokeWidth="1.8" strokeLinecap="round" />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2M6.6 6.6C3.6 8.4 2 12 2 12s3.5 6.5 10 6.5c1.1 0 2.1-.15 3-.42M10.6 5.2A10 10 0 0 1 12 5.5c6.5 0 10 6.5 10 6.5a15 15 0 0 1-3.2 4" />
+      <path d="M3 3l18 18" />
     </svg>
   );
 }
 
+// Champ avec libellé visible, icône et (en option) bouton « afficher le mot de passe ».
+function Field({ id, label, icon, type = "text", value, onChange, autoComplete, minLength, shown, onToggle }) {
+  return (
+    <div>
+      <label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-white/75">
+        {label}
+      </label>
+      <div className="flex items-center gap-3 rounded-2xl border border-white/15 bg-white/[0.06] pl-4 pr-1 transition focus-within:border-violet-400 focus-within:bg-white/[0.08]">
+        <span className="shrink-0 text-violet-300">{icon}</span>
+        <input
+          id={id}
+          type={onToggle ? (shown ? "text" : "password") : type}
+          value={value}
+          onChange={onChange}
+          required
+          minLength={minLength}
+          autoComplete={autoComplete}
+          autoCapitalize="none"
+          spellCheck={false}
+          className="min-h-[52px] flex-1 bg-transparent text-[15px] text-white outline-none"
+        />
+        {onToggle && (
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-label={shown ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+            aria-pressed={shown}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white/70 active:bg-white/10"
+          >
+            {shown ? <EyeOffIcon /> : <EyeIcon size={20} />}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /**
- * Écran visuel de connexion / inscription, réutilisé pour le compte
- * développeur ET le compte élève. Toute la logique (appels API, gestion
- * du token) est passée en props par le composant parent (DevAuth / StudentAuth) :
- * la mise en page ne fait aucune hypothèse sur "qui" se connecte.
+ * Écran de connexion / inscription, réutilisé pour le compte développeur ET le compte élève.
+ * Toute la logique (appels API, gestion du token) est passée en props par le parent
+ * (DevAuth / StudentAuth) : la mise en page ne fait aucune hypothèse sur « qui » se connecte.
  */
 export default function AuthScreen({
-  title, // ex: "DÉVELOPPEUR" ou "ÉLÈVE"
+  title, // ex : "DÉVELOPPEUR" ou "ÉLÈVE"
   onBack,
   onSubmitLogin, // ({ username, password }) => Promise
   onSubmitRegister, // ({ username, password, confirmPassword }) => Promise
@@ -128,137 +118,100 @@ export default function AuthScreen({
   };
 
   return (
-    <div className="min-h-screen bg-[#060b1c] flex flex-col px-6 pt-8 pb-10 relative overflow-hidden">
-      <div className="pointer-events-none absolute -top-24 -right-20 w-72 h-72 rounded-full bg-blue-600/20 blur-3xl" />
+    <div className="relative isolate flex min-h-screen flex-col bg-ink">
+      <AuroraBackground />
 
-      {/* Retour */}
-      <button
-        onClick={onBack}
-        aria-label="Retour"
-        className="self-start mb-2 -ml-1 p-1 active:opacity-60 transition relative"
-      >
-        <BackArrowIcon />
-      </button>
-
-      {/* Titre */}
-      <h1
-        className="text-center text-white font-extrabold text-3xl tracking-wide mb-8 mt-2 relative"
-        style={{ fontFamily: "'Baloo 2', sans-serif" }}
-      >
-        {title}
-      </h1>
-
-      {/* Toggle Connexion / Inscription */}
-      <div className="w-full max-w-sm mx-auto bg-white/5 border border-white/10 rounded-full p-1 flex mb-8 relative">
+      <header className="pt-safe flex items-center gap-3 px-5 pb-2">
         <button
           type="button"
-          onClick={() => switchMode("login")}
-          className={`flex-1 py-3.5 rounded-full text-white font-bold tracking-wide text-sm transition ${
-            mode === "login"
-              ? "bg-gradient-to-r from-sky-500 to-blue-600 shadow-[0_0_18px_-2px_rgba(56,189,248,0.6)]"
-              : ""
-          }`}
+          onClick={onBack}
+          aria-label="Retour"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 bg-white/[0.08] text-white transition active:bg-white/20 motion-reduce:transition-none"
         >
-          CONNEXION
+          <ChevronLeftIcon size={22} />
         </button>
-        <button
-          type="button"
-          onClick={() => switchMode("register")}
-          className={`flex-1 py-3.5 rounded-full text-white font-bold tracking-wide text-sm transition ${
-            mode === "register"
-              ? "bg-gradient-to-r from-sky-500 to-blue-600 shadow-[0_0_18px_-2px_rgba(56,189,248,0.6)]"
-              : ""
-          }`}
-        >
-          INSCRIPTION
-        </button>
-      </div>
+        <h1 className="text-xl font-extrabold tracking-wide text-white">{title}</h1>
+      </header>
 
-      {error && (
-        <div className="w-full max-w-sm mx-auto mb-4 text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-2.5 relative">
-          {error}
-        </div>
-      )}
-      {info && (
-        <div className="w-full max-w-sm mx-auto mb-4 text-sm text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-2.5 relative">
-          {info}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="w-full max-w-sm mx-auto flex flex-col gap-5 relative">
-        {/* Identifiant */}
-        <label className="flex items-center gap-3 bg-white/5 border border-white/15 rounded-full px-5 py-4 focus-within:border-sky-400 transition">
-          <IdIcon />
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            placeholder="Identifiant"
-            className="flex-1 bg-transparent outline-none text-white placeholder:text-white/35"
-          />
-        </label>
-
-        {/* Mot de passe */}
-        <label className="flex items-center gap-3 bg-white/5 border border-white/15 rounded-full px-5 py-4 focus-within:border-sky-400 transition">
-          <LockIcon />
-          <input
-            type={showPassword ? "text" : "password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={8}
-            placeholder="Mot de passe"
-            className="flex-1 bg-transparent outline-none text-white placeholder:text-white/35"
-          />
+      <main className="pb-safe mx-auto w-full max-w-sm flex-1 px-5 pt-8">
+        {/* Bascule Connexion / Inscription */}
+        <div className="seg mb-6" role="tablist" aria-label="Mode">
           <button
             type="button"
-            onClick={() => setShowPassword((v) => !v)}
-            aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-            className="shrink-0 p-1 -mr-1 active:opacity-60 transition"
+            role="tab"
+            aria-selected={mode === "login"}
+            onClick={() => switchMode("login")}
+            className={`seg-item ${mode === "login" ? "seg-item-on" : ""}`}
           >
-            {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+            Connexion
           </button>
-        </label>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === "register"}
+            onClick={() => switchMode("register")}
+            className={`seg-item ${mode === "register" ? "seg-item-on" : ""}`}
+          >
+            Inscription
+          </button>
+        </div>
 
-        {/* Confirmation (inscription uniquement) */}
-        {mode === "register" && (
-          <label className="flex items-center gap-3 bg-white/5 border border-white/15 rounded-full px-5 py-4 focus-within:border-sky-400 transition">
-            <ThumbsUpIcon />
-            <input
-              type={showConfirmPassword ? "text" : "password"}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              minLength={8}
-              placeholder="Confirmer le mot de passe"
-              className="flex-1 bg-transparent outline-none text-white placeholder:text-white/35"
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword((v) => !v)}
-              aria-label={
-                showConfirmPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"
-              }
-              className="shrink-0 p-1 -mr-1 active:opacity-60 transition"
-            >
-              {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
-            </button>
-          </label>
+        {error && (
+          <div role="alert" className="mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {error}
+          </div>
+        )}
+        {info && (
+          <div role="status" className="mb-4 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
+            {info}
+          </div>
         )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="mt-2 w-full max-w-[220px] mx-auto py-4 rounded-full bg-gradient-to-r from-sky-500 to-blue-600 text-white font-bold tracking-wide text-sm shadow-[0_0_22px_-4px_rgba(56,189,248,0.6)] hover:brightness-110 transition disabled:opacity-60"
-        >
-          {loading
-            ? "Veuillez patienter..."
-            : mode === "login"
-            ? "SE CONNECTER"
-            : "S'INSCRIRE"}
-        </button>
-      </form>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <Field
+            id="auth-username"
+            label="Identifiant"
+            icon={<UserIcon size={20} />}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            autoComplete="username"
+          />
+
+          <Field
+            id="auth-password"
+            label="Mot de passe"
+            icon={<LockIcon />}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
+            minLength={8}
+            shown={showPassword}
+            onToggle={() => setShowPassword((v) => !v)}
+          />
+
+          {mode === "register" && (
+            <Field
+              id="auth-confirm"
+              label="Confirmer le mot de passe"
+              icon={<CheckIcon />}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              autoComplete="new-password"
+              minLength={8}
+              shown={showConfirmPassword}
+              onToggle={() => setShowConfirmPassword((v) => !v)}
+            />
+          )}
+
+          {mode === "register" && (
+            <p className="-mt-1 text-xs text-white/65">8 caractères minimum.</p>
+          )}
+
+          <button type="submit" disabled={loading} className="btn-primary mt-2 w-full">
+            {loading ? "Veuillez patienter…" : mode === "login" ? "Se connecter" : "S'inscrire"}
+          </button>
+        </form>
+      </main>
     </div>
   );
 }

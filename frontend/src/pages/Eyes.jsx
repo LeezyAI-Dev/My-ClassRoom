@@ -259,24 +259,34 @@ export default function Eyes({ onBack }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#060b1c] flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 sticky top-0 z-20 bg-[#060b1c]/90 backdrop-blur border-b border-white/10">
-        <button onClick={onBack} className="p-2 -ml-2">
+    <div className="min-h-screen bg-ink flex flex-col">
+      {/* En-tête : retour, titre, publier */}
+      <div
+        className="sticky top-0 z-20 flex h-[68px] items-center justify-between border-b border-white/10 bg-ink/90 px-4 backdrop-blur"
+        style={{ boxSizing: "content-box", paddingTop: "env(safe-area-inset-top, 0px)" }}
+      >
+        <button
+          type="button"
+          onClick={onBack}
+          aria-label="Retour à l'accueil"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/[0.08] text-white transition active:bg-white/20 motion-reduce:transition-none"
+        >
           <BackArrow />
         </button>
-        <div className="flex items-center gap-2">
-          <EyeIcon size={22} filled />
+        <div className="flex items-center gap-2.5">
           <span
-            className="text-white text-lg tracking-widest"
-            style={{ fontFamily: "'Baloo 2', sans-serif", fontWeight: 700 }}
+            className="flex h-9 w-9 items-center justify-center rounded-xl"
+            style={{ background: "linear-gradient(135deg, #ff9d5c 0%, #ff4f5e 100%)" }}
+            aria-hidden="true"
           >
-            EYES
+            <EyeIcon size={20} filled />
           </span>
+          <span className="text-lg font-extrabold tracking-wide text-white">EYES</span>
         </div>
         <button
+          type="button"
           onClick={() => setShowUpload(true)}
-          className="bg-gradient-to-br from-sky-500 to-blue-600 rounded-full p-2 shadow-[0_0_16px_-2px_rgba(56,189,248,0.6)]"
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-gradient shadow-glow-sm transition active:brightness-110 motion-reduce:transition-none"
           aria-label="Publier"
         >
           <PlusIcon />
@@ -287,7 +297,7 @@ export default function Eyes({ onBack }) {
       {loading && <p className="text-white/60 text-center mt-10">Chargement du fil…</p>}
       {error && <p className="text-red-400 text-center mt-10">{error}</p>}
       {!loading && !error && posts.length === 0 && (
-        <div className="flex-1 flex flex-col items-center justify-center text-white/50 px-8 text-center">
+        <div className="flex-1 flex flex-col items-center justify-center text-white/60 px-8 text-center">
           <EyeIcon size={40} />
           <p className="mt-4">Rien à voir pour l'instant. Sois le premier à publier dans EYES.</p>
         </div>
@@ -305,7 +315,7 @@ export default function Eyes({ onBack }) {
               ref={(el) => (itemRefs.current[post.id] = el)}
               data-post-id={post.id}
               className="relative w-full snap-start flex items-center justify-center bg-black"
-              style={{ height: "calc(100vh - 60px)" }}
+              style={{ height: "calc(100vh - 68px - env(safe-area-inset-top, 0px))" }}
             >
               {post.media_type === "image" ? (
                 <img
@@ -325,20 +335,20 @@ export default function Eyes({ onBack }) {
 
               {/* Overlay bas gauche : auteur + légende */}
               <div className="absolute left-4 right-20 bottom-6 text-white">
-                <p className="font-semibold" style={{ fontFamily: "'Baloo 2', sans-serif" }}>
+                <p className="font-semibold">
                   @{post.author_username}
-                  <span className="ml-2 text-xs text-white/50 font-normal">{timeAgo(post.created_at)}</span>
+                  <span className="ml-2 text-xs text-white/60 font-normal">{timeAgo(post.created_at)}</span>
                 </p>
                 {post.caption && <p className="text-sm text-white/90 mt-1">{post.caption}</p>}
               </div>
 
               {/* Rail d'actions bas droite */}
               <div className="absolute right-3 bottom-6 flex flex-col items-center gap-5">
-                <button onClick={() => handleLike(post.id)} className="flex flex-col items-center gap-1">
+                <button type="button" onClick={() => handleLike(post.id)} aria-label={post.liked_by_me ? "Retirer mon j'aime" : "J'aime"} aria-pressed={post.liked_by_me} className="flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-1">
                   <HeartIcon filled={post.liked_by_me} />
-                  <span className="text-white text-xs">{post.like_count}</span>
+                  <span className="text-white text-xs font-semibold drop-shadow">{post.like_count}</span>
                 </button>
-                <button onClick={() => openComments(post.id)} className="flex flex-col items-center gap-1">
+                <button type="button" onClick={() => openComments(post.id)} aria-label="Voir les commentaires" className="flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-1">
                   <CommentIcon />
                   <span className="text-white text-xs">{post.comment_count}</span>
                 </button>
@@ -347,7 +357,7 @@ export default function Eyes({ onBack }) {
                   <span className="text-white text-xs">{post.view_count}</span>
                 </div>
                 {isMine && (
-                  <button onClick={() => handleDelete(post.id)} className="flex flex-col items-center gap-1 mt-2">
+                  <button type="button" onClick={() => handleDelete(post.id)} aria-label="Supprimer ma publication" className="mt-2 flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-1">
                     <TrashIcon />
                   </button>
                 )}
@@ -360,18 +370,18 @@ export default function Eyes({ onBack }) {
       {/* Modale d'upload */}
       {showUpload && (
         <div className="fixed inset-0 bg-black/80 z-30 flex items-end sm:items-center justify-center">
-          <div className="bg-[#0b1230] border border-white/10 w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6">
+          <div role="dialog" aria-modal="true" aria-label="Publier dans EYES" className="bg-surface border border-white/10 w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 pb-safe">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-white text-lg" style={{ fontFamily: "'Baloo 2', sans-serif", fontWeight: 700 }}>
+              <h2 className="text-white text-lg" style={{ fontWeight: 700 }}>
                 Publier dans EYES
               </h2>
-              <button onClick={closeUpload} className="text-white/60 text-2xl leading-none">
+              <button type="button" onClick={closeUpload} aria-label="Fermer" className="-mr-2 flex h-11 w-11 items-center justify-center text-2xl leading-none text-white/70">
                 ×
               </button>
             </div>
 
             {!previewUrl ? (
-              <label className="flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-2xl py-10 cursor-pointer text-white/60 hover:border-sky-400 transition">
+              <label className="flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-2xl py-10 cursor-pointer text-white/60 hover:border-violet-400 transition">
                 <PlusIcon size={28} color="currentColor" />
                 <span className="mt-2 text-sm">Choisir une photo ou une vidéo</span>
                 <input
@@ -393,7 +403,7 @@ export default function Eyes({ onBack }) {
                     setSelectedFile(null);
                     setPreviewUrl(null);
                   }}
-                  className="text-white/50 text-xs mt-2 underline"
+                  className="text-white/60 text-xs mt-2 underline"
                 >
                   Changer de fichier
                 </button>
@@ -406,7 +416,7 @@ export default function Eyes({ onBack }) {
               placeholder="Une légende (facultatif)"
               maxLength={500}
               rows={2}
-              className="w-full bg-white/5 text-white rounded-xl p-3 text-sm outline-none placeholder:text-white/30 resize-none"
+              className="field resize-none"
             />
 
             {uploadError && <p className="text-red-400 text-sm mt-2">{uploadError}</p>}
@@ -414,7 +424,7 @@ export default function Eyes({ onBack }) {
             <button
               onClick={handlePublish}
               disabled={uploading}
-              className="w-full mt-4 bg-gradient-to-r from-sky-500 to-blue-600 text-white font-semibold py-3 rounded-2xl shadow-[0_0_18px_-4px_rgba(56,189,248,0.6)] disabled:opacity-50"
+              className="btn-primary mt-4 w-full"
             >
               {uploading ? "Publication…" : "Publier"}
             </button>
@@ -426,42 +436,42 @@ export default function Eyes({ onBack }) {
       {commentsPostId && (
         <div className="fixed inset-0 bg-black/60 z-30 flex items-end" onClick={closeComments}>
           <div
-            className="bg-[#0b1230] border border-white/10 w-full max-h-[70vh] rounded-t-3xl flex flex-col"
+            className="bg-surface border border-white/10 w-full max-h-[70vh] rounded-t-3xl flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
               <h3 className="text-white font-semibold">Commentaires</h3>
-              <button onClick={closeComments} className="text-white/60 text-2xl leading-none">
+              <button type="button" onClick={closeComments} aria-label="Fermer" className="-mr-2 flex h-11 w-11 items-center justify-center text-2xl leading-none text-white/70">
                 ×
               </button>
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 py-3">
-              {commentsLoading && <p className="text-white/40 text-sm">Chargement…</p>}
+              {commentsLoading && <p className="text-white/55 text-sm">Chargement…</p>}
               {!commentsLoading && comments.length === 0 && (
-                <p className="text-white/40 text-sm">Aucun commentaire pour l'instant.</p>
+                <p className="text-white/55 text-sm">Aucun commentaire pour l'instant.</p>
               )}
               {comments.map((c) => (
                 <div key={c.id} className="mb-3">
                   <p className="text-white text-sm">
                     <span className="font-semibold">@{c.author_username}</span>{" "}
-                    <span className="text-white/40 text-xs">{timeAgo(c.created_at)}</span>
+                    <span className="text-white/55 text-xs">{timeAgo(c.created_at)}</span>
                   </p>
                   <p className="text-white/80 text-sm">{c.content}</p>
                 </div>
               ))}
             </div>
 
-            <div className="flex items-center gap-2 px-5 py-4 border-t border-white/10">
+            <div className="flex items-center gap-2 px-5 py-4 border-t border-white/10 pb-safe">
               <input
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
                 placeholder="Ajouter un commentaire…"
                 maxLength={500}
-                className="flex-1 bg-white/5 text-white rounded-full px-4 py-2 text-sm outline-none placeholder:text-white/30"
+                className="field flex-1 !rounded-full !py-2.5"
               />
-              <button onClick={handleAddComment} className="text-white font-semibold text-sm px-2">
+              <button type="button" onClick={handleAddComment} className="min-h-[44px] px-3 text-sm font-bold text-violet-300">
                 Envoyer
               </button>
             </div>

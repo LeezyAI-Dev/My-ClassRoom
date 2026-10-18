@@ -11,6 +11,9 @@ import {
 } from "../api";
 import AuroraBackground from "../components/ui/AuroraBackground";
 import GradientButton from "../components/ui/GradientButton";
+import PageHeader from "../components/ui/PageHeader";
+import { ConfirmDialog } from "../components/ui/BottomNav";
+import { DocIcon } from "../components/ui/Icons";
 
 // --- Icônes ---
 
@@ -196,24 +199,24 @@ function AuthImage({ token, gradeId, version, onOpen }) {
           <img src={src} alt="Copie" className="w-full h-auto block" />
         </button>
       )}
-      {!src && !failed && <span className="text-xs text-white/40">Chargement de la photo...</span>}
+      {!src && !failed && <span className="text-xs text-white/55">Chargement de la photo...</span>}
       {failed && <span className="text-xs text-red-300">Photo indisponible.</span>}
     </div>
   );
 }
 
 function Header({ title, subtitle, onBack, right }) {
+  // Sans `onBack` (liste des matières), c'est la tuile d'icône qui s'affiche ; le retour
+  // vers l'accueil est assuré par la barre du bas.
   return (
-    <header className="px-6 pt-9 pb-6 flex items-center gap-4">
-      <GradientButton tone="blue" size="sm" icon={<BackArrowIcon />} label="Retour" onClick={onBack} />
-      <div className="min-w-0 flex-1">
-        <h1 className="text-white font-extrabold text-2xl truncate" style={{ fontFamily: "'Baloo 2', sans-serif" }}>
-          {title}
-        </h1>
-        {subtitle && <p className="text-sm text-white/50 truncate">{subtitle}</p>}
-      </div>
-      {right}
-    </header>
+    <PageHeader
+      title={title}
+      subtitle={subtitle}
+      onBack={onBack}
+      right={right}
+      icon={<DocIcon size={24} />}
+      tone="orchid"
+    />
   );
 }
 
@@ -292,7 +295,7 @@ function GradeForm({ token, subject, grade, onCancel, onSaved }) {
   const hasAnyPhoto = Boolean(file) || showExistingPhoto;
 
   return (
-    <div className="relative isolate min-h-screen bg-black">
+    <div className="relative isolate min-h-screen bg-ink">
       <AuroraBackground />
       <Header
         title={isEdit ? "Modifier la note" : "Nouvelle note"}
@@ -300,7 +303,7 @@ function GradeForm({ token, subject, grade, onCancel, onSaved }) {
         onBack={step === 2 ? () => { setError(""); setStep(1); } : onCancel}
       />
 
-      <main className="max-w-md mx-auto px-6 pb-10">
+      <main className="max-w-md mx-auto px-5 pb-nav">
         <div className="flex gap-1.5 mb-6">
           <span className="h-1 flex-1 rounded-full bg-violet-300" />
           <span className={`h-1 flex-1 rounded-full ${step === 2 ? "bg-violet-300" : "bg-white/15"}`} />
@@ -308,7 +311,7 @@ function GradeForm({ token, subject, grade, onCancel, onSaved }) {
 
         {step === 1 && (
           <section>
-            <p className="text-white font-extrabold text-lg mb-4" style={{ fontFamily: "'Baloo 2', sans-serif" }}>
+            <p className="text-white font-extrabold text-lg mb-4">
               1. J'ai eu :
             </p>
             <input
@@ -321,18 +324,14 @@ function GradeForm({ token, subject, grade, onCancel, onSaved }) {
               className="w-full bg-white/5 border border-white/15 rounded-2xl px-5 py-4 text-white text-3xl font-extrabold placeholder-white/25 focus:outline-none focus:border-violet-300"
             />
 
-            <p className="text-sm text-white/50 mt-5 mb-2">Cette note est sur combien ?</p>
-            <div className="bg-white/5 border border-white/10 rounded-full p-1 flex">
+            <p className="text-sm text-white/60 mt-5 mb-2">Cette note est sur combien ?</p>
+            <div className="seg">
               {[20, 10].map((value) => (
                 <button
                   key={value}
                   type="button"
                   onClick={() => setScale(value)}
-                  className={`flex-1 py-2.5 rounded-full text-sm font-semibold transition ${
-                    scale === value
-                      ? "bg-white text-black"
-                      : "text-white/50"
-                  }`}
+                  className={`seg-item ${scale === value ? "seg-item-on" : ""}`}
                 >
                   Sur {value}
                 </button>
@@ -340,7 +339,7 @@ function GradeForm({ token, subject, grade, onCancel, onSaved }) {
             </div>
 
             {error && (
-              <div className="mt-4 text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">
+              <div role="alert" className="mt-4 text-sm text-red-200 bg-red-500/10 border border-red-500/30 rounded-2xl px-4 py-3">
                 {error}
               </div>
             )}
@@ -353,10 +352,10 @@ function GradeForm({ token, subject, grade, onCancel, onSaved }) {
 
         {step === 2 && (
           <section>
-            <p className="text-white font-extrabold text-lg mb-1" style={{ fontFamily: "'Baloo 2', sans-serif" }}>
+            <p className="text-white font-extrabold text-lg mb-1">
               2. Photo de la copie
             </p>
-            <p className="text-sm text-white/50 mb-4">
+            <p className="text-sm text-white/60 mb-4">
               Note : {formatScore(parseScoreInput(scoreText, scale) ?? 0)}/{scale}. La photo est facultative.
             </p>
 
@@ -414,7 +413,7 @@ function GradeForm({ token, subject, grade, onCancel, onSaved }) {
             )}
 
             {error && (
-              <div className="mt-4 text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">
+              <div role="alert" className="mt-4 text-sm text-red-200 bg-red-500/10 border border-red-500/30 rounded-2xl px-4 py-3">
                 {error}
               </div>
             )}
@@ -563,7 +562,7 @@ export default function GradesRegister({ onBack }) {
   // --- Écran : les notes d'une matière ---
   if (screen === "subject" && current) {
     return (
-      <div className="relative isolate min-h-screen bg-black">
+      <div className="relative isolate min-h-screen bg-ink">
       <AuroraBackground />
         <Header
           title={current.name}
@@ -574,10 +573,10 @@ export default function GradesRegister({ onBack }) {
           }
         />
 
-        <main className="max-w-md mx-auto px-6 pb-10 space-y-5">
-          {gradesLoading && <p className="text-sm text-white/40 text-center py-10">Chargement...</p>}
+        <main className="max-w-md mx-auto px-5 pb-nav space-y-5">
+          {gradesLoading && <p className="text-sm text-white/55 text-center py-10">Chargement...</p>}
           {gradesError && (
-            <div className="text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">
+            <div role="alert" className="text-sm text-red-200 bg-red-500/10 border border-red-500/30 rounded-2xl px-4 py-3">
               {gradesError}
             </div>
           )}
@@ -585,20 +584,20 @@ export default function GradesRegister({ onBack }) {
           {!gradesLoading && !gradesError && grades.length === 0 && (
             <div className="text-center py-12">
               <p className="text-white/70 font-semibold mb-1">Aucune note en {current.name} pour l'instant.</p>
-              <p className="text-sm text-white/40">Ajoute ta première note avec le bouton +.</p>
+              <p className="text-sm text-white/55">Ajoute ta première note avec le bouton +.</p>
             </div>
           )}
 
           {grades.map((g) => (
-            <article key={g.id} className="rounded-3xl border border-white/10 bg-white/[0.05] backdrop-blur-xl p-4">
+            <article key={g.id} className="card p-4">
               <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
-                  <p className="text-sm text-white/50">J'ai eu</p>
-                  <p className="text-white font-extrabold text-3xl leading-none mt-1" style={{ fontFamily: "'Baloo 2', sans-serif" }}>
+                  <p className="text-sm text-white/60">J'ai eu</p>
+                  <p className="text-white font-extrabold text-3xl leading-none mt-1">
                     {formatScore(g.score)}
-                    <span className="text-white/50 text-xl">/{g.scale}</span>
+                    <span className="text-white/60 text-xl">/{g.scale}</span>
                   </p>
-                  <p className="text-xs text-white/35 mt-1.5">{formatDate(g.created_at)}</p>
+                  <p className="text-xs text-white/50 mt-1.5">{formatDate(g.created_at)}</p>
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <GradientButton tone="green" size="sm" icon={<PencilIcon />} label="Modifier" onClick={() => startEdit(g)} />
@@ -622,22 +621,14 @@ export default function GradesRegister({ onBack }) {
         {zoomSrc && <Lightbox src={zoomSrc} onClose={() => setZoomSrc(null)} />}
 
         {toDelete && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-8" onClick={() => !deleting && setToDelete(null)}>
-            <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-[24px] p-6 max-w-xs w-full text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
-              <p className="font-extrabold text-white text-lg mb-1">Supprimer cette note ?</p>
-              <p className="text-sm text-white/50 mb-5">
-                {formatScore(toDelete.score)}/{toDelete.scale} en {current.name}, avec sa photo. Cette action est définitive.
-              </p>
-              <div className="flex gap-3">
-                <GradientButton tone="blue" look="glass" size="sm" className="flex-1" onClick={() => setToDelete(null)} disabled={deleting}>
-                  Annuler
-                </GradientButton>
-                <GradientButton tone="orange" look="danger" size="sm" className="flex-1" onClick={confirmDelete} disabled={deleting}>
-                  {deleting ? "..." : "Supprimer"}
-                </GradientButton>
-              </div>
-            </div>
-          </div>
+          <ConfirmDialog
+            title="Supprimer cette note ?"
+            message={`${formatScore(toDelete.score)}/${toDelete.scale} en ${current.name}, avec sa photo. Cette action est définitive.`}
+            confirmLabel={deleting ? "…" : "Supprimer"}
+            busy={deleting}
+            onCancel={() => setToDelete(null)}
+            onConfirm={confirmDelete}
+          />
         )}
       </div>
     );
@@ -645,14 +636,14 @@ export default function GradesRegister({ onBack }) {
 
   // --- Écran : liste des matières (2 sections) ---
   return (
-    <div className="relative isolate min-h-screen bg-black">
+    <div className="relative isolate min-h-screen bg-ink">
       <AuroraBackground />
-      <Header title="Registre de notes" subtitle="Privé : toi seul vois tes notes" onBack={onBack} />
+      <Header title="Registre de notes" subtitle="Privé : toi seul vois tes notes" />
 
-      <main className="max-w-md mx-auto px-6 pb-10">
-        {loading && <p className="text-sm text-white/40 text-center py-10">Chargement...</p>}
+      <main className="max-w-md mx-auto px-5 pb-nav">
+        {loading && <p className="text-sm text-white/55 text-center py-10">Chargement...</p>}
         {error && (
-          <div className="text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">
+          <div role="alert" className="text-sm text-red-200 bg-red-500/10 border border-red-500/30 rounded-2xl px-4 py-3">
             {error}
           </div>
         )}
@@ -663,7 +654,7 @@ export default function GradesRegister({ onBack }) {
             return (
               <section key={group} className="mb-8">
                 <div className="mb-3">
-                  <h2 className={`font-extrabold text-lg ${style.accent}`} style={{ fontFamily: "'Baloo 2', sans-serif" }}>
+                  <h2 className={`font-extrabold text-lg ${style.accent}`}>
                     {style.title}
                   </h2>
                   <div className={`w-8 h-1 rounded-full mt-1 ${style.bar}`} />
@@ -675,7 +666,7 @@ export default function GradesRegister({ onBack }) {
                     return (
                       <div
                         key={subject.id}
-                        className="flex items-center gap-2 rounded-2xl pr-3 border border-white/10 bg-white/[0.05] backdrop-blur-xl"
+                        className="card flex items-center gap-2 pr-3"
                       >
                         <button
                           onClick={() => openSubject(subject)}
@@ -689,7 +680,7 @@ export default function GradesRegister({ onBack }) {
                           </span>
                           <span className="flex-1 min-w-0">
                             <span className="block font-semibold text-white text-[15px] truncate">{subject.name}</span>
-                            <span className="block text-xs text-white/50">
+                            <span className="block text-xs text-white/60">
                               {n === 0 ? "Aucune note" : `${n} note${n > 1 ? "s" : ""}`}
                             </span>
                           </span>

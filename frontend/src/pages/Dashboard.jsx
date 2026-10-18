@@ -1,366 +1,312 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { fetchSchedule, fetchSubjects, fetchStudents } from "../api";
+import { fetchSchedule, fetchStudents, fetchSubjects } from "../api";
+import { APP_NAME, CLASS_NAME, CLASS_TAGLINE } from "../config";
 import BannerCarousel from "../components/BannerCarousel";
 import BannerManager from "../components/BannerManager";
 import AuroraBackground from "../components/ui/AuroraBackground";
-import BottomNav from "../components/ui/BottomNav";
-import GradientButton from "../components/ui/GradientButton";
-import { TILE, BAR } from "../components/ui/theme";
+import IconTile from "../components/ui/IconTile";
 import {
-  CapIcon,
   BookIcon,
-  DocIcon,
   CalcIcon,
-  EyeIcon,
+  CapIcon,
   ChecklistIcon,
-  ProfileIcon,
-} from "../components/ui/icons";
+  DocIcon,
+  EyeIcon,
+  UserIcon,
+} from "../components/ui/Icons";
 
-// Nom de la classe affiché en grand sur l'Accueil.
-const CLASS_NAME = "2BT/A";
+const ROLE_LABEL = {
+  developer: "Développeur",
+  student: "Élève",
+};
 
-const ROLE_LABEL = { developer: "Développeur", student: "Élève" };
-
-// "value" = Date.prototype.getDay() (1 = lundi ... 6 = samedi).
+// Jours affichés dans la carte « Emploi du temps » (valeurs = Date.getDay()).
 const WEEK = [
-  { value: 1, short: "Lun", long: "lundi" },
-  { value: 2, short: "Mar", long: "mardi" },
-  { value: 3, short: "Mer", long: "mercredi" },
-  { value: 4, short: "Jeu", long: "jeudi" },
-  { value: 5, short: "Ven", long: "vendredi" },
-  { value: 6, short: "Sam", long: "samedi" },
+  { value: 1, short: "Lun", long: "Lundi" },
+  { value: 2, short: "Mar", long: "Mardi" },
+  { value: 3, short: "Mer", long: "Mercredi" },
+  { value: 4, short: "Jeu", long: "Jeudi" },
+  { value: 5, short: "Ven", long: "Vendredi" },
+  { value: 6, short: "Sam", long: "Samedi" },
 ];
-const BAR_TONES = [BAR.violet, BAR.fuchsia, BAR.violet, BAR.blue, BAR.violet, BAR.fuchsia];
 
-const fmtHour = (hhmm) => String(hhmm).replace(":", "H"); // "07:30" -> "07H30"
+// Couleur de chaque barre, comme sur la maquette (alternance violet / magenta / bleu).
+const BAR_GRADIENTS = [
+  "linear-gradient(180deg, #a35cf0 0%, #6b34c9 100%)",
+  "linear-gradient(180deg, #e04bf0 0%, #a02bc4 100%)",
+  "linear-gradient(180deg, #a35cf0 0%, #6b34c9 100%)",
+  "linear-gradient(180deg, #5fa8ff 0%, #3a74e6 100%)",
+  "linear-gradient(180deg, #a35cf0 0%, #6b34c9 100%)",
+  "linear-gradient(180deg, #e04bf0 0%, #a02bc4 100%)",
+];
 
-// Chiffres de l'Accueil, lus dans l'API (jamais de valeur inventée : null tant qu'on ne sait pas).
-function useHomeStats(token, isDeveloper) {
-  const [slots, setSlots] = useState(null);
+const BAR_MAX_PX = 104;
+const BAR_MIN_PX = 20;
+
+function toMinutes(hhmm) {
+  const [h, m] = String(hhmm).split(":").map(Number);
+  return h * 60 + (m || 0);
+}
+
+function formatHour(minutes) {
+  const h = String(Math.floor(minutes / 60)).padStart(2, "0");
+  const m = String(minutes % 60).padStart(2, "0");
+  return `${h}H${m}`;
+}
+
+// Résume l'emploi du temps réel : minutes de cours par jour, plage horaire, jours couverts.
+function summarizeSchedule(slots) {
+  const perDay = WEEK.map((d) => ({
+    ...d,
+    minutes: slots
+      .filter((s) => s.day_of_week === d.value)
+      .reduce((sum, s) => sum + Math.max(0, toMinutes(s.end_time) - toMinutes(s.start_time)), 0),
+  }));
+
+  if (slots.length === 0) return { perDay, label: "Aucun cours pour l'instant" };
+
+  const start = Math.min(...slots.map((s) => toMinutes(s.start_time)));
+  const end = Math.max(...slots.map((s) => toMinutes(s.end_time)));
+  const days = perDay.filter((d) => d.minutes > 0);
+  const range =
+    days.length > 1 ? `${days[0].short} à ${days[days.length - 1].short}` : days[0]?.short || "";
+
+  return { perDay, label: `${formatHour(start)} – ${formatHour(end)}${range ? ` · ${range}` : ""}` };
+}
+
+function formatHoursSpoken(minutes) {
+  if (minutes <= 0) return "aucun cours";
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return `${h > 0 ? `${h} h` : ""}${m > 0 ? ` ${m} min` : ""}`.trim() + " de cours";
+}
+
+// --- Carte « Emploi du temps » : barres proportionnelles aux heures de cours de chaque jour ---
+
+function ScheduleCard({ summary, onOpen }) {
+  const today = new Date().getDay();
+  const maxMinutes = Math.max(...summary.perDay.map((d) => d.minutes), 0);
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label={`Emploi du temps, ${summary.label}. Ouvrir`}
+      className="card-press w-full p-5 text-left"
+    >
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 className="text-[15px] font-bold text-white">Emploi du temps</h2>
+        <p className="truncate text-xs text-white/70">{summary.label}</p>
+      </div>
+
+      <div className="mt-4 grid grid-cols-6 gap-2.5" role="img" aria-label="Heures de cours par jour">
+        {summary.perDay.map((d, i) => {
+          const height =
+            maxMinutes > 0 && d.minutes > 0
+              ? Math.max(BAR_MIN_PX, Math.round((d.minutes / maxMinutes) * BAR_MAX_PX))
+              : BAR_MIN_PX;
+          const isToday = d.value === today;
+
+          return (
+            <div key={d.value} className="flex flex-col items-center gap-2" title={`${d.long} : ${formatHoursSpoken(d.minutes)}`}>
+              <div className="flex h-[104px] w-full items-end">
+                <div
+                  className={`w-full rounded-xl ${d.minutes === 0 ? "opacity-30" : ""}`}
+                  style={{ height, background: BAR_GRADIENTS[i] }}
+                />
+              </div>
+              <span className={`text-xs ${isToday ? "font-bold text-white" : "text-white/65"}`}>{d.short}</span>
+            </div>
+          );
+        })}
+      </div>
+    </button>
+  );
+}
+
+// --- Carte de menu : tuile d'icône + titre + sous-titre ---
+
+function MenuCard({ icon, tone, title, subtitle, onClick, accent = false, className = "", right }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`${accent ? "card-accent" : "card-press"} flex min-h-[76px] items-center gap-3 p-3.5 text-left transition duration-150 active:scale-[0.985] motion-reduce:transition-none ${className}`}
+    >
+      <IconTile tone={tone}>{icon}</IconTile>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[15px] font-bold leading-tight text-white">{title}</span>
+        <span className="mt-0.5 block text-[13px] leading-tight text-white/65">{subtitle}</span>
+      </span>
+      {right}
+    </button>
+  );
+}
+
+export default function Dashboard({ onNavigate, onLogout }) {
+  const { user, token, isDeveloper } = useAuth();
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [bannerOpen, setBannerOpen] = useState(false);
+
+  const [summary, setSummary] = useState(() => summarizeSchedule([]));
   const [subjectCount, setSubjectCount] = useState(null);
   const [studentCount, setStudentCount] = useState(null);
 
+  // Les chiffres de l'accueil viennent des vraies données. Un échec n'est pas bloquant :
+  // la carte garde simplement son texte par défaut.
   useEffect(() => {
     let cancelled = false;
 
     fetchSchedule()
-      .then((data) => !cancelled && setSlots(data.slots || []))
-      .catch(() => !cancelled && setSlots([]));
+      .then((data) => !cancelled && setSummary(summarizeSchedule(data.slots || [])))
+      .catch(() => {});
 
     fetchSubjects()
       .then((data) => {
-        if (cancelled) return;
-        setSubjectCount((data.generale?.length || 0) + (data.technique?.length || 0));
+        if (!cancelled) setSubjectCount((data.generale?.length || 0) + (data.technique?.length || 0));
       })
       .catch(() => {});
 
-    if (isDeveloper && token) {
+    if (isDeveloper) {
       fetchStudents(token)
-        .then((data) => {
-          if (cancelled) return;
-          setStudentCount(data.total ?? data.students?.length ?? 0);
-        })
+        .then((data) => !cancelled && setStudentCount((data.students || []).length))
         .catch(() => {});
     }
 
     return () => {
       cancelled = true;
     };
-  }, [token, isDeveloper]);
-
-  return { slots, subjectCount, studentCount };
-}
-
-// Résumé de l'emploi du temps : nombre de cours par jour, plage d'horaires, plage de jours.
-function summarizeSchedule(slots) {
-  const perDay = WEEK.map((d) => (slots || []).filter((s) => Number(s.day_of_week) === d.value).length);
-  const max = Math.max(0, ...perDay);
-  const hasSlots = max > 0;
-
-  let hours = "";
-  let days = "";
-  if (hasSlots) {
-    const starts = slots.map((s) => s.start_time).filter(Boolean).sort();
-    const ends = slots.map((s) => s.end_time).filter(Boolean).sort();
-    if (starts.length && ends.length) hours = `${fmtHour(starts[0])} – ${fmtHour(ends[ends.length - 1])}`;
-    const used = WEEK.filter((_, i) => perDay[i] > 0);
-    days = `${used[0].short} à ${used[used.length - 1].short}`;
-  }
-  return { perDay, max, hasSlots, hours, days };
-}
-
-// --- Carte de l'emploi du temps (barres = nombre de cours par jour) ---
-
-function ScheduleCard({ slots, onOpen }) {
-  const { perDay, max, hasSlots, hours, days } = useMemo(() => summarizeSchedule(slots), [slots]);
-  const today = new Date().getDay();
-
-  const meta = hasSlots ? [hours, days].filter(Boolean).join(" · ") : slots === null ? "" : "Aucun cours pour l'instant";
-  const label =
-    "Emploi du temps" +
-    (meta ? `, ${meta}` : "") +
-    (hasSlots
-      ? ". " + WEEK.map((d, i) => `${d.long} : ${perDay[i]} cours`).join(", ")
-      : "");
-
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      aria-label={label}
-      className="mc-card mc-focus relative w-full px-4 pt-4 pb-3 text-left transition-colors duration-150 active:bg-white/[0.06]"
-    >
-      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-        <span className="text-[16px] font-bold text-white">Emploi du temps</span>
-        {meta && <span className="text-[12px] font-medium text-white/65">{meta}</span>}
-      </div>
-
-      <div aria-hidden="true" className="mt-4 flex items-end gap-2 h-[68px]">
-        {WEEK.map((d, i) => {
-          const pct = perDay[i] === 0 ? 16 : 38 + (62 * perDay[i]) / (max || 1);
-          return (
-            <div key={d.value} className="flex-1 h-full flex items-end">
-              <div
-                className={`w-full rounded-lg transition-[height] duration-500 motion-reduce:transition-none ${
-                  today === d.value ? "ring-2 ring-white/60" : ""
-                } ${perDay[i] === 0 ? "opacity-40" : ""}`}
-                style={{ height: `${pct}%`, background: BAR_TONES[i] }}
-              />
-            </div>
-          );
-        })}
-      </div>
-
-      <div aria-hidden="true" className="mt-2 flex gap-2">
-        {WEEK.map((d) => (
-          <span
-            key={d.value}
-            className={`flex-1 text-center text-[12px] ${
-              today === d.value ? "font-bold text-white" : "font-medium text-white/65"
-            }`}
-          >
-            {d.short}
-          </span>
-        ))}
-      </div>
-    </button>
-  );
-}
-
-// --- Carte de menu : pastille d'icône colorée + titre + sous-titre ---
-
-function MenuCard({ icon, tone, title, subtitle, onClick, featured = false, badge, className = "" }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`mc-card mc-focus min-h-[72px] px-3 py-3 flex items-center gap-2.5 text-left transition-colors duration-150 active:bg-white/[0.07] ${
-        featured ? "border-brand-violet/45 bg-gradient-to-br from-brand-violet/[0.16] to-night-card/90" : ""
-      } ${className}`}
-    >
-      <span
-        className="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center text-white shadow-lg"
-        style={{ background: TILE[tone] }}
-      >
-        {icon}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-[15px] font-bold leading-tight text-white">{title}</span>
-        {subtitle && <span className="block mt-0.5 text-[13px] leading-snug text-white/65">{subtitle}</span>}
-      </span>
-      {badge && (
-        <span className="shrink-0 rounded-full border border-white/20 bg-white/[0.06] px-2.5 py-1 text-[11px] font-medium text-white/85">
-          {badge}
-        </span>
-      )}
-    </button>
-  );
-}
-
-export default function Dashboard({ onNavigate, onLogout }) {
-  const { token, user, isDeveloper } = useAuth();
-  const { slots, subjectCount, studentCount } = useHomeStats(token, isDeveloper);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
-
-  // Échap ferme le menu profil et la fenêtre de déconnexion.
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === "Escape") {
-        setProfileOpen(false);
-        setLogoutConfirmOpen(false);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [isDeveloper, token]);
 
   const roleLabel = ROLE_LABEL[user?.role] || user?.role;
 
   return (
-    <div className="relative isolate h-[100dvh] bg-night flex flex-col">
+    <div className="relative isolate min-h-screen bg-ink">
       <AuroraBackground />
 
-      <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-6">
-        <div className="mx-auto max-w-md">
-          {/* En-tête : logo + nom, rôle, profil */}
-          <header className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 flex-1 items-center gap-2.5">
-              <span
-                className="w-9 h-9 shrink-0 rounded-xl flex items-center justify-center text-white shadow-[0_6px_20px_-6px_rgba(168,85,247,0.9)]"
-                style={{ background: TILE.violet }}
-              >
-                <CapIcon size={20} />
-              </span>
-              <span className="min-w-0 truncate text-[16px] font-bold tracking-tight text-white">My ClassRoom</span>
-            </div>
+      {/* En-tête : logo, nom de l'appli, rôle, profil */}
+      <header className="pt-safe flex items-center gap-3 px-5">
+        <IconTile tone="violet" size="sm" glow>
+          <CapIcon size={22} />
+        </IconTile>
+        <p className="min-w-0 flex-1 truncate text-lg font-extrabold text-white">{APP_NAME}</p>
 
-            <div className="relative flex shrink-0 items-center gap-2">
-              {roleLabel && (
-                <span className="rounded-full border border-white/20 bg-white/[0.06] px-3 py-1.5 text-[12px] font-medium text-white/90">
-                  {roleLabel}
-                </span>
-              )}
+        <span className="pill">{roleLabel}</span>
+
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setProfileOpen((open) => !open)}
+            aria-label="Profil"
+            aria-expanded={profileOpen}
+            aria-haspopup="menu"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] text-white transition active:bg-white/15 motion-reduce:transition-none"
+          >
+            <UserIcon size={22} />
+          </button>
+
+          {profileOpen && (
+            <>
+              <div className="fixed inset-0 z-10" onClick={() => setProfileOpen(false)} aria-hidden="true" />
+              <div
+                role="menu"
+                className="absolute right-0 z-20 mt-2 w-56 rounded-2xl border border-white/10 bg-surface p-4 shadow-2xl"
+              >
+                <p className="truncate text-sm font-bold text-white">{user?.username}</p>
+                <p className="mb-3 text-xs text-white/65">Compte {roleLabel?.toLowerCase()}</p>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={onLogout}
+                  className="flex min-h-[44px] w-full items-center text-left text-sm font-semibold text-red-300 active:text-red-200"
+                >
+                  Se déconnecter
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </header>
+
+      <main className="pb-nav px-5">
+        {/* Titre : nom de la classe */}
+        <section className="px-2 pb-7 pt-9 text-center">
+          <h1 className="bg-title-gradient bg-clip-text text-[2.75rem] font-extrabold leading-none tracking-tight text-transparent">
+            {CLASS_NAME}
+          </h1>
+          <p className="mx-auto mt-4 max-w-[17rem] text-[15px] leading-snug text-lavender">{CLASS_TAGLINE}</p>
+        </section>
+
+        <div className="mx-auto max-w-md space-y-3">
+          {/* Bannière du développeur (n'apparaît que s'il y a des images) */}
+          <BannerCarousel />
+
+          <ScheduleCard summary={summary} onOpen={() => onNavigate("schedule")} />
+
+          <div className="grid grid-cols-2 gap-3">
+            <MenuCard
+              tone="violet"
+              icon={<BookIcon size={22} />}
+              title="Matières"
+              subtitle={subjectCount === null ? "Cours et ressources" : `${subjectCount} matières`}
+              onClick={() => onNavigate("subjects")}
+            />
+            <MenuCard
+              accent
+              tone="orchid"
+              icon={<DocIcon size={22} />}
+              title="Registre de notes"
+              subtitle="Privé"
+              onClick={() => onNavigate("grades")}
+            />
+            <MenuCard
+              tone="blue"
+              icon={<CalcIcon size={22} />}
+              title="Moyenne"
+              subtitle="Calculateur"
+              onClick={() => onNavigate("average")}
+            />
+            <MenuCard
+              tone="orange"
+              icon={<EyeIcon size={22} />}
+              title="Eyes"
+              subtitle="Fil de la classe"
+              onClick={() => onNavigate("eyes")}
+            />
+          </div>
+
+          {isDeveloper && (
+            <>
+              <MenuCard
+                className="w-full"
+                tone="green"
+                icon={<ChecklistIcon size={22} />}
+                title="Checklist"
+                subtitle={
+                  studentCount === null
+                    ? "Liste des élèves"
+                    : `Liste des élèves · ${studentCount} inscrit${studentCount > 1 ? "s" : ""}`
+                }
+                onClick={() => onNavigate("checklist")}
+                right={<span className="pill shrink-0">Développeur</span>}
+              />
+
+              {/* Gestion de la bannière : repliée par défaut pour garder l'accueil épuré */}
               <button
                 type="button"
-                onClick={() => setProfileOpen((open) => !open)}
-                aria-label="Profil"
-                aria-expanded={profileOpen}
-                className="mc-focus w-11 h-11 rounded-full border border-white/15 bg-white/[0.06] text-white flex items-center justify-center transition-colors duration-150 active:bg-white/15"
+                onClick={() => setBannerOpen((open) => !open)}
+                aria-expanded={bannerOpen}
+                className="flex min-h-[48px] w-full items-center justify-between rounded-2xl px-4 text-sm font-semibold text-white/70 transition active:bg-white/[0.06] motion-reduce:transition-none"
               >
-                <ProfileIcon size={22} />
+                Bannière d'accueil
+                <span className="text-xs font-medium text-violet-300">{bannerOpen ? "Masquer" : "Gérer"}</span>
               </button>
-
-              {profileOpen && (
-                <>
-                  {/* Zone invisible : un appui en dehors du menu le ferme */}
-                  <button
-                    type="button"
-                    aria-label="Fermer le menu"
-                    tabIndex={-1}
-                    className="fixed inset-0 z-10 cursor-default"
-                    onClick={() => setProfileOpen(false)}
-                  />
-                  <div className="absolute right-0 top-full z-20 mt-2 w-56 rounded-2xl border border-white/10 bg-night-raised p-4 shadow-2xl">
-                    <p className="truncate text-sm font-bold text-white">{user?.username}</p>
-                    <p className="mb-3 text-xs text-white/65">Compte {roleLabel?.toLowerCase()}</p>
-                    <button
-                      type="button"
-                      onClick={onLogout}
-                      className="mc-focus w-full rounded-lg py-2 text-left text-sm font-semibold text-red-300 active:text-red-200"
-                    >
-                      Se déconnecter
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </header>
-
-          {/* Titre */}
-          <div className="mt-6 text-center">
-            <h1 className="bg-gradient-to-b from-white to-brand-lavender bg-clip-text text-[42px] font-extrabold leading-none tracking-tight text-transparent">
-              {CLASS_NAME}
-            </h1>
-            <p className="mx-auto mt-3 max-w-[18rem] text-[16px] leading-snug text-brand-lavender/90">
-              Cours, emploi du temps, notes et publications de la classe.
-            </p>
-          </div>
-
-          <div className="mt-5 space-y-3">
-            {/* Bannière : images du développeur en boucle (disparaît s'il n'y en a aucune) */}
-            <BannerCarousel />
-
-            <div className="relative">
-              <ScheduleCard slots={slots} onOpen={() => onNavigate("schedule")} />
-              {/* Arc lumineux de la maquette : dépasse de la carte sur les côtés, sans bloquer les appuis */}
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute left-1/2 bottom-[calc(100%-62px)] aspect-square w-[157%] -translate-x-1/2 rounded-full border border-brand-lavender/25"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <MenuCard
-                icon={<BookIcon size={20} />}
-                tone="violet"
-                title="Matières"
-                subtitle={subjectCount !== null ? `${subjectCount} matières` : "Cours et ressources"}
-                onClick={() => onNavigate("subjects")}
-              />
-              <MenuCard
-                icon={<DocIcon size={20} />}
-                tone="rose"
-                title="Registre de notes"
-                subtitle="Privé"
-                featured
-                onClick={() => onNavigate("grades")}
-              />
-              <MenuCard
-                icon={<CalcIcon size={20} />}
-                tone="blue"
-                title="Moyenne"
-                subtitle="Calculateur"
-                onClick={() => onNavigate("average")}
-              />
-              <MenuCard
-                icon={<EyeIcon size={20} />}
-                tone="orange"
-                title="Eyes"
-                subtitle="Fil de la classe"
-                onClick={() => onNavigate("eyes")}
-              />
-            </div>
-
-            {/* Checklist : visible uniquement dans le compte développeur */}
-            {isDeveloper && (
-              <MenuCard
-                icon={<ChecklistIcon size={20} />}
-                tone="green"
-                title="Checklist"
-                subtitle={studentCount !== null ? `Liste des élèves · ${studentCount} inscrits` : "Liste des élèves"}
-                badge="Développeur"
-                onClick={() => onNavigate("checklist")}
-                className="w-full"
-              />
-            )}
-
-            {isDeveloper && <BannerManager />}
-          </div>
+              {bannerOpen && <BannerManager />}
+            </>
+          )}
         </div>
       </main>
-
-      <BottomNav homeActive onHome={() => onNavigate("dashboard")} onLogout={() => setLogoutConfirmOpen(true)} />
-
-      {/* Confirmation de déconnexion */}
-      {logoutConfirmOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-8"
-          onClick={() => setLogoutConfirmOpen(false)}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="logout-title"
-            className="w-full max-w-xs rounded-[28px] border border-white/10 bg-night-raised p-6 text-center shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <p id="logout-title" className="mb-1 text-lg font-extrabold text-white">
-              Se déconnecter ?
-            </p>
-            <p className="mb-5 text-sm text-white/65">Tu devras te reconnecter pour accéder à ton compte.</p>
-            <div className="flex gap-3">
-              <GradientButton tone="blue" look="glass" size="sm" className="flex-1" onClick={() => setLogoutConfirmOpen(false)}>
-                Annuler
-              </GradientButton>
-              <GradientButton tone="orange" look="danger" size="sm" className="flex-1" onClick={onLogout}>
-                Déconnexion
-              </GradientButton>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

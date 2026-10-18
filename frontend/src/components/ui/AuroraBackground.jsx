@@ -1,36 +1,35 @@
 import React from "react";
 
-// Fond commun à toutes les pages (maquette "Accueil") : noir violacé, grand halo violet en haut,
-// grain très léger.
-// Utilisation : mettre <AuroraBackground /> en 1er enfant d'une page dont la racine est
-// <div className="relative isolate min-h-screen bg-night"> : le fond reste derrière le contenu.
-// Uniquement des dégradés CSS (pas de flou ni d'animation) : léger même sur un Android modeste.
-const NOISE =
-  "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
-
+// Fond commun à toutes les pages, d'après la maquette : noir profond, avec un « dôme » violet
+// en haut (grand cercle dont on voit l'arc) et une lueur diffuse. Uniquement des dégradés
+// (aucun flou coûteux) : fluide même sur un Android modeste.
+//
+// Utilisation : <AuroraBackground /> en 1er enfant d'une page dont la racine est
+// <div className="relative isolate min-h-screen bg-ink"> : le fond reste derrière le contenu.
 export default function AuroraBackground() {
   return (
-    <div aria-hidden="true" className="fixed inset-0 -z-10 overflow-hidden pointer-events-none bg-night">
-      {/* Grand halo violet du haut, qui s'éteint vers le noir */}
+    <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-ink">
+      {/* Lueur violette du haut */}
       <div
-        className="absolute inset-0"
+        className="absolute inset-x-0 top-0 h-[70vh]"
         style={{
           background:
-            "radial-gradient(130% 52% at 50% 0%, rgba(168,85,247,0.42) 0%, rgba(109,40,217,0.26) 40%, rgba(8,5,14,0) 72%)",
+            "radial-gradient(120% 80% at 50% 0%, rgba(124,58,237,0.42) 0%, rgba(88,28,160,0.22) 45%, rgba(7,5,13,0) 100%)",
         }}
       />
-      {/* Reflet fuchsia au centre du halo */}
+
+      {/* Dôme : grand cercle, seul son arc inférieur est visible */}
       <div
-        className="absolute inset-x-0 top-0 h-[46%]"
+        className="absolute left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full border border-violet-300/20"
         style={{
-          background: "radial-gradient(55% 70% at 50% 18%, rgba(217,70,239,0.16), rgba(217,70,239,0) 70%)",
+          top: "-340px",
+          background:
+            "radial-gradient(circle at 50% 0%, rgba(150,70,230,0.5) 0%, rgba(110,45,190,0.28) 55%, rgba(60,20,110,0.12) 100%)",
         }}
       />
-      {/* Grain */}
-      <div
-        className="absolute inset-0 opacity-[0.03] mix-blend-soft-light"
-        style={{ backgroundImage: NOISE, backgroundSize: "200px 200px" }}
-      />
+
+      {/* Fondu vers le noir en bas, pour que la barre de navigation reste lisible */}
+      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-ink to-transparent" />
     </div>
   );
 }
