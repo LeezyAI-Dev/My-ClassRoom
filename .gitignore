@@ -4,3 +4,7 @@
 *.db-shm
 *.db-wal
 dist/
+
+.env.*
+*.log
+src_ancien_*/
