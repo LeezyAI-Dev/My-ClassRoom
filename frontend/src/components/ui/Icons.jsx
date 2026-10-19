@@ -133,3 +133,22 @@ export const ResetIcon = (p) => (
     <path d="M4 4.5V8.5h4" />
   </Svg>
 );
+
+export const ChatIcon = (p) => (
+  <Svg {...p}>
+    <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12Z" />
+  </Svg>
+);
+
+export const SendIcon = (p) => (
+  <Svg {...p}>
+    <path d="M22 2 11 13" />
+    <path d="M22 2 15 22l-4-9-9-4 20-7Z" />
+  </Svg>
+);
+
+export const SparkIcon = (p) => (
+  <Svg {...p}>
+    <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z" />
+  </Svg>
+);

@@ -1,3 +1,4 @@
+import GuideBot from "./components/GuideBot";
 import React, { useState } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import WhoAreYou from "./pages/WhoAreYou";
@@ -127,6 +128,7 @@ function AppContent() {
   return (
     <>
       {renderScreen()}
+      {NAV_SCREENS.includes(screen) && <GuideBot screen={screen} onNavigate={setScreen} />}
       {NAV_SCREENS.includes(screen) && (
         <BottomNav
           canGoBack={screen !== "dashboard"}

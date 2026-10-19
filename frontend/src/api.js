@@ -324,3 +324,23 @@ export async function fetchGradePhotoBlob(token, gradeId) {
   if (!res.ok) throw new Error("Photo introuvable.");
   return res.blob();
 }
+
+// --- Guide Mia (IA) ---
+
+// Question libre au guide. Renvoie { text, screen }. Lève une erreur si l'IA est indisponible
+// (quota, réseau, clé absente) : le composant retombe alors sur les réponses locales.
+export async function askGuide(token, { message, screen, history }) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 12000);
+  try {
+    const res = await fetch(`${BASE_URL}/guide/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ message, screen, history }),
+      signal: controller.signal,
+    });
+    return await handleResponse(res);
+  } finally {
+    clearTimeout(timer);
+  }
+}

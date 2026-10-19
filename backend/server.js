@@ -28,6 +28,7 @@ app.use("/api/resources", resourceActionsRoutes); // /api/resources/:id (suppres
 app.use("/api/schedule", scheduleRoutes);
 app.use("/api/banner", bannerRoutes);
 app.use("/api/eyes", eyesRoutes);
+app.use("/api/guide", require("./guideRoute.cjs")(require("./middleware/auth").requireAnyAuth)); // guide Mia (IA)
 app.use("/api/grades", gradesRoutes); // registre de notes (privé à chaque utilisateur)
 
 // Fichiers PDF uploadés, servis tels quels (nom aléatoire, lecture seule).
