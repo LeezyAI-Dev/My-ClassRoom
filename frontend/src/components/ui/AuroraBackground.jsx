@@ -1,8 +1,10 @@
 import React from "react";
 
 // Fond commun à toutes les pages, d'après la maquette : noir profond, avec un « dôme » violet
-// en haut (grand cercle dont on voit l'arc) et une lueur diffuse. Uniquement des dégradés
-// (aucun flou coûteux) : fluide même sur un Android modeste.
+// en haut (grand cercle dont on voit l'arc) et une lueur diffuse.
+// Trois grosses « lueurs » de couleur (rose, bleu, violet) sont posées plus bas : les cartes en
+// verre les laissent traverser en les floutant, ce qui donne l'effet iPhone quand on fait défiler.
+// Uniquement des dégradés (aucun flou coûteux dans le fond lui-même).
 //
 // Utilisation : <AuroraBackground /> en 1er enfant d'une page dont la racine est
 // <div className="relative isolate min-h-screen bg-ink"> : le fond reste derrière le contenu.
@@ -28,8 +30,19 @@ export default function AuroraBackground() {
         }}
       />
 
-      {/* Fondu vers le noir en bas, pour que la barre de navigation reste lisible */}
-      <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-ink to-transparent" />
+      {/* Lueurs de couleur que le verre laisse deviner */}
+      <div
+        className="absolute -left-28 top-[34%] h-80 w-80 rounded-full"
+        style={{ background: "radial-gradient(circle, rgba(236,72,153,0.42) 0%, rgba(236,72,153,0) 68%)" }}
+      />
+      <div
+        className="absolute -right-32 top-[54%] h-96 w-96 rounded-full"
+        style={{ background: "radial-gradient(circle, rgba(59,130,246,0.38) 0%, rgba(59,130,246,0) 68%)" }}
+      />
+      <div
+        className="absolute -left-16 bottom-[-6%] h-80 w-80 rounded-full"
+        style={{ background: "radial-gradient(circle, rgba(168,85,247,0.4) 0%, rgba(168,85,247,0) 68%)" }}
+      />
     </div>
   );
 }

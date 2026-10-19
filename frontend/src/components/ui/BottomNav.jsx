@@ -13,7 +13,12 @@ export default function BottomNav({ onBack, onHome, onLogout, canGoBack = true }
         className="fixed inset-x-0 bottom-0 z-40 px-4"
         style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
       >
-        <div className="mx-auto flex max-w-md items-center justify-center gap-2 rounded-full border border-white/10 bg-[#14101f]/90 p-2 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.8)] backdrop-blur-md">
+        {/* viewTransitionName : la barre reste en place pendant le balayement des écrans. Le nom est posé sur
+            l'élément en verre lui-même (et non sur <nav>), sinon le navigateur n'applique plus le flou. */}
+        <div
+          className="mx-auto flex max-w-md items-center justify-center gap-2 glass-nav rounded-full p-2"
+          style={{ viewTransitionName: "bottom-nav" }}
+        >
           <button
             type="button"
             onClick={onBack}
@@ -83,14 +88,14 @@ export function ConfirmDialog({ title, message, cancelLabel = "Annuler", confirm
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-6"
+      className="dialog-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/55 px-6 backdrop-blur-md"
       onClick={() => !busy && onCancel()}
     >
       <div
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="confirm-title"
-        className="w-full max-w-xs rounded-3xl border border-white/10 bg-surface p-6 text-center shadow-2xl"
+        className="dialog-panel glass-panel w-full max-w-xs rounded-3xl p-6 text-center"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 id="confirm-title" className="mb-1 text-lg font-extrabold text-white">

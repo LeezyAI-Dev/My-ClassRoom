@@ -211,7 +211,7 @@ export default function Dashboard({ onNavigate, onLogout }) {
               <div className="fixed inset-0 z-10" onClick={() => setProfileOpen(false)} aria-hidden="true" />
               <div
                 role="menu"
-                className="absolute right-0 z-20 mt-2 w-56 rounded-2xl border border-white/10 bg-surface p-4 shadow-2xl"
+                className="absolute right-0 z-20 mt-2 w-56 glass-panel rounded-2xl p-4"
               >
                 <p className="truncate text-sm font-bold text-white">{user?.username}</p>
                 <p className="mb-3 text-xs text-white/65">Compte {roleLabel?.toLowerCase()}</p>

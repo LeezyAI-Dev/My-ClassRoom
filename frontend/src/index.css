@@ -23,47 +23,186 @@ body {
   outline-offset: 2px;
 }
 
+/* ───────── Réglages du verre (effet iPhone) ─────────
+   Si l'app rame sur un téléphone lent : baisse --glass-blur (ex. 8px), ou mets 0px. */
+:root {
+  --glass-blur: 14px;
+  --glass-saturate: 170%;
+}
+
 /* ───────── Composants communs ───────── */
 @layer components {
-  /* Carte en verre (accueil, listes, formulaires) */
-  .card {
-    @apply rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.07] to-white/[0.03];
+  /* === VERRE ===========================================================
+     Recette : fond translucide + flou qui garde les couleurs (saturate) + reflet lumineux
+     en haut (inset) + liseré dégradé (::after) + ombre douce. Les couleurs de l'arrière-plan
+     (AuroraBackground) traversent le verre : c'est ce qui donne l'effet « vrai verre ». */
+  .card,
+  .card-press,
+  .card-accent,
+  .glass-panel,
+  .glass-nav {
+    position: relative;
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   }
+
+  /* Liseré de verre : lumineux en haut à gauche, discret au milieu, reflet en bas à droite */
+  .card::after,
+  .card-press::after,
+  .card-accent::after,
+  .glass-panel::after,
+  .glass-nav::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      155deg,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0.1) 30%,
+      rgba(255, 255, 255, 0.04) 62%,
+      rgba(255, 255, 255, 0.26) 100%
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Carte en verre (accueil, listes, formulaires) */
+  .card,
+  .card-press {
+    border-radius: 1.5rem;
+    background: linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(255, 255, 255, 0.06) 52%,
+      rgba(255, 255, 255, 0.09) 100%
+    );
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), inset 0 -12px 24px -14px rgba(255, 255, 255, 0.06),
+      0 16px 36px -16px rgba(0, 0, 0, 0.7);
+  }
+
+  /* Carte mise en avant : verre teinté violet, avec halo */
+  .card-accent {
+    border-radius: 1.5rem;
+    background: linear-gradient(
+      165deg,
+      rgba(169, 85, 255, 0.36) 0%,
+      rgba(169, 85, 255, 0.11) 55%,
+      rgba(234, 81, 255, 0.18) 100%
+    );
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -12px 24px -14px rgba(234, 81, 255, 0.18),
+      0 0 34px -10px rgba(169, 85, 255, 0.55), 0 16px 36px -16px rgba(0, 0, 0, 0.7);
+  }
+
   /* Carte qui réagit à l'appui */
   .card-press {
-    @apply card transition duration-150 ease-out active:scale-[0.985] active:bg-white/[0.08] motion-reduce:transition-none;
+    transition: transform 160ms cubic-bezier(0.32, 0.72, 0, 1), background-color 160ms ease-out;
   }
-  /* Carte mise en avant (bordure violette) */
-  .card-accent {
-    @apply rounded-3xl border border-violet-400/50 bg-gradient-to-b from-violet-500/[0.14] to-violet-500/[0.04];
+  .card-press:active {
+    transform: scale(0.975);
+    background-color: rgba(255, 255, 255, 0.07);
   }
+
+  /* Barre de navigation du bas : verre plus transparent, très arrondi */
+  .glass-nav {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.17), rgba(255, 255, 255, 0.06)),
+      rgba(18, 12, 30, 0.4);
+    -webkit-backdrop-filter: blur(16px) saturate(190%);
+    backdrop-filter: blur(16px) saturate(190%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), inset 0 -8px 18px -10px rgba(255, 255, 255, 0.08),
+      0 18px 44px -12px rgba(0, 0, 0, 0.75);
+  }
+
+  /* Fenêtres et menus flottants (déconnexion, profil…) */
+  .glass-panel {
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06)),
+      rgba(26, 18, 44, 0.6);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    backdrop-filter: blur(18px) saturate(180%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 24px 60px -16px rgba(0, 0, 0, 0.85);
+  }
+
+  /* Si le téléphone ne sait pas flouter, ou si l'utilisateur a demandé moins de transparence :
+     on garde un fond plein, pour que le texte reste toujours lisible. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .card,
+    .card-press {
+      background: #1a1428;
+    }
+    .card-accent {
+      background: #2a1648;
+    }
+    .glass-nav,
+    .glass-panel {
+      background: #1d1530;
+    }
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .card,
+    .card-press,
+    .card-accent,
+    .glass-nav,
+    .glass-panel {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+    .card,
+    .card-press {
+      background: #1a1428;
+    }
+    .card-accent {
+      background: #2a1648;
+    }
+    .glass-nav,
+    .glass-panel {
+      background: #1d1530;
+    }
+  }
+
   /* Pastille d'information (ex. « Développeur ») */
   .pill {
-    @apply inline-flex items-center rounded-full border border-white/20 bg-white/[0.04] px-3 py-1 text-xs font-medium text-white/80;
+    @apply inline-flex items-center rounded-full border border-white/20 bg-white/[0.07] px-3 py-1 text-xs font-medium text-white/85;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
   /* Champs de formulaire */
   .field {
     @apply w-full rounded-2xl border border-white/15 bg-white/[0.06] px-4 py-3 text-sm text-white outline-none transition placeholder:text-white/50 focus:border-violet-400 focus:bg-white/[0.08];
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
   /* Contrôle segmenté (Générales / Techniques, Jour / Semaine…) */
   .seg {
-    @apply flex rounded-full border border-white/10 bg-white/[0.05] p-1;
+    @apply flex rounded-full border border-white/10 bg-white/[0.06] p-1;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(255, 255, 255, 0.06);
   }
   .seg-item {
     @apply min-h-[44px] flex-1 rounded-full text-sm font-semibold text-white/65 transition duration-200 motion-reduce:transition-none;
   }
   .seg-item-on {
     @apply bg-brand-gradient text-white shadow-glow-sm;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 14px -4px rgba(169, 85, 255, 0.5);
   }
   /* Boutons pleins */
   .btn-primary {
     @apply inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-brand-gradient px-6 text-sm font-bold text-white shadow-glow transition duration-150 active:scale-[0.98] active:brightness-110 disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none;
   }
   .btn-ghost {
-    @apply inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.08] px-6 text-sm font-semibold text-white transition duration-150 active:bg-white/15 disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none;
+    @apply inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.09] px-6 text-sm font-semibold text-white transition duration-150 active:bg-white/15 disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
   }
   .btn-danger {
     @apply inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full border border-red-400/40 bg-red-500/15 px-6 text-sm font-bold text-red-200 transition duration-150 active:bg-red-500/30 disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  }
+
+  /* Apparition des fenêtres (style iPhone : léger zoom + fondu) */
+  .dialog-overlay {
+    animation: dialog-fade 220ms ease-out both;
+  }
+  .dialog-panel {
+    animation: dialog-pop 300ms cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
   }
 }
 
@@ -77,6 +216,150 @@ body {
   }
   .pb-safe {
     padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@keyframes dialog-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes dialog-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+
+/* ───────── Transitions entre écrans (balayement style iPhone) ─────────
+   App.jsx pose data-nav="forward | back | up | down | fade" sur <html> pendant la transition
+   (API « View Transitions » du navigateur). Les deux écrans glissent ensemble :
+   l'ancien recule un peu en s'assombrissant, le nouveau arrive par-dessus avec une ombre. */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 400ms;
+    animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1); /* courbe « ressort » d'iOS */
+    animation-fill-mode: both;
+    mix-blend-mode: normal;
+  }
+
+  /* Aller plus loin (accueil -> matières) */
+  html[data-nav="forward"]::view-transition-old(root) {
+    animation-name: nav-push-out;
+  }
+  html[data-nav="forward"]::view-transition-new(root) {
+    animation-name: nav-push-in;
+    z-index: 2;
+    box-shadow: -22px 0 44px rgba(0, 0, 0, 0.6);
+  }
+
+  /* Revenir (matières -> accueil) */
+  html[data-nav="back"]::view-transition-old(root) {
+    animation-name: nav-pop-out;
+    z-index: 2;
+    box-shadow: -22px 0 44px rgba(0, 0, 0, 0.6);
+  }
+  html[data-nav="back"]::view-transition-new(root) {
+    animation-name: nav-pop-in;
+  }
+
+  /* Ouvrir un écran plein cadre (Eyes) : monte du bas, comme une feuille iOS */
+  html[data-nav="up"]::view-transition-old(root) {
+    animation-name: nav-sheet-under;
+  }
+  html[data-nav="up"]::view-transition-new(root) {
+    animation-name: nav-sheet-in;
+    z-index: 2;
+  }
+  html[data-nav="down"]::view-transition-old(root) {
+    animation-name: nav-sheet-out;
+    z-index: 2;
+  }
+  html[data-nav="down"]::view-transition-new(root) {
+    animation-name: nav-sheet-over;
+  }
+
+  /* Même niveau (ex. code PIN -> accueil) : fondu avec léger zoom */
+  html[data-nav="fade"]::view-transition-old(root) {
+    animation-name: nav-fade-out;
+  }
+  html[data-nav="fade"]::view-transition-new(root) {
+    animation-name: nav-fade-in;
+  }
+
+  /* La barre du bas reste en place (elle a son propre nom de transition) */
+  ::view-transition-group(bottom-nav) {
+    animation-duration: 300ms;
+    animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  }
+}
+
+@keyframes nav-push-out {
+  to {
+    transform: translate3d(-26%, 0, 0);
+    filter: brightness(0.5);
+  }
+}
+@keyframes nav-push-in {
+  from {
+    transform: translate3d(100%, 0, 0);
+  }
+}
+@keyframes nav-pop-out {
+  to {
+    transform: translate3d(100%, 0, 0);
+  }
+}
+@keyframes nav-pop-in {
+  from {
+    transform: translate3d(-26%, 0, 0);
+    filter: brightness(0.5);
+  }
+}
+@keyframes nav-sheet-in {
+  from {
+    transform: translate3d(0, 100%, 0);
+  }
+}
+@keyframes nav-sheet-under {
+  to {
+    transform: scale(0.94);
+    filter: brightness(0.5);
+  }
+}
+@keyframes nav-sheet-out {
+  to {
+    transform: translate3d(0, 100%, 0);
+  }
+}
+@keyframes nav-sheet-over {
+  from {
+    transform: scale(0.94);
+    filter: brightness(0.5);
+  }
+}
+@keyframes nav-fade-out {
+  to {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+}
+@keyframes nav-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(1.015);
+  }
+}
+
+/* Téléphones sans « View Transitions » : l'écran qui arrive apparaît en glissant légèrement. */
+.screen-enter {
+  animation: screen-enter 320ms cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+@keyframes screen-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
   }
 }
 
